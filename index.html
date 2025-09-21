@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Boolean Algebra Proof Editor</title>
+    <style>
+        body {
+            font-family: monospace;
+            max-width: 900px;
+            margin: 20px auto;
+            padding: 20px;
+            background: white;
+        }
+        h1 {
+            font-size: 18px;
+            font-weight: normal;
+        }
+        .subtitle {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 20px;
+        }
+        
+        .text-section {
+            margin: 20px 0;
+        }
+        
+        .text-area {
+            width: 100%;
+            min-height: 60px;
+            padding: 5px;
+            font-family: monospace;
+            font-size: 14px;
+            border: 1px solid #000;
+            resize: vertical;
+        }
+        
+        .section-label {
+            font-size: 12px;
+            margin-bottom: 5px;
+        }
+        
+        .proof-container {
+            margin: 20px 0;
+            padding: 10px;
+            border: 1px solid #000;
+        }
+        
+        .proof-line {
+            display: grid;
+            grid-template-columns: 30px 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 8px;
+            align-items: center;
+        }
+        .line-number {
+            text-align: right;
+            font-size: 14px;
+        }
+        .proof-input, .reason-input {
+            padding: 4px;
+            font-family: monospace;
+            font-size: 14px;
+            border: 1px solid #666;
+        }
+        .proof-input:focus, .reason-input:focus {
+            outline: 1px solid #000;
+        }
+        .add-line-btn {
+            margin-top: 10px;
+            padding: 4px 8px;
+            background: white;
+            border: 1px solid #666;
+            cursor: pointer;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .add-line-btn:hover {
+            background: #f0f0f0;
+        }
+        .preview-section {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px dashed #666;
+        }
+        .preview-content {
+            font-family: serif;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .preview-line {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+        .preview-expr {
+            flex: 1;
+        }
+        .preview-reason {
+            font-style: italic;
+            margin-left: 20px;
+        }
+        .preview-text {
+            margin: 10px 0;
+            white-space: pre-wrap;
+        }
+        .button-group {
+            margin-top: 20px;
+        }
+        .btn {
+            padding: 5px 10px;
+            margin-right: 10px;
+            background: white;
+            border: 1px solid #000;
+            cursor: pointer;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        .btn:hover {
+            background: #f0f0f0;
+        }
+        .copy-status {
+            color: #666;
+            margin-left: 10px;
+            display: none;
+        }
+        .copy-status.show {
+            display: inline;
+        }
+        .shortcuts-panel {
+            margin-top: 30px;
+            padding: 10px;
+            border: 1px solid #666;
+        }
+        .shortcuts-title {
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        .shortcut-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 5px;
+            font-size: 12px;
+        }
+        .shortcut-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 2px;
+        }
+        .shortcut-from {
+            font-family: monospace;
+        }
+        .shortcut-to {
+            font-weight: bold;
+        }
+        .latex-output {
+            background: #f0f0f0;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            margin-top: 20px;
+            border: 1px solid #666;
+        }
+        .hint {
+            font-size: 11px;
+            color: #666;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Boolean Algebra Proof Editor</h1>
+    <div class="subtitle">Enter → next field | Space → convert symbol | Auto-creates lines</div>
+    
+    <div class="text-section">
+        <div class="section-label">Given / Problem:</div>
+        <textarea class="text-area" id="preText" placeholder="Problem statement..."></textarea>
+    </div>
+
+    <div class="proof-container">
+        <div class="section-label">Proof:</div>
+        <div id="proofLines">
+            <div class="proof-line">
+                <div class="line-number">1.</div>
+                <input type="text" class="proof-input" placeholder="expression">
+                <input type="text" class="reason-input" placeholder="reason">
+            </div>
+        </div>
+        <button class="add-line-btn" onclick="addLine()">+ Add Line</button>
+        <div class="hint">Shortcuts: v→∨  ^→∧  !→¬  ->→→  <->→↔</div>
+    </div>
+
+    <div class="text-section">
+        <div class="section-label">Therefore / Conclusion:</div>
+        <textarea class="text-area" id="postText" placeholder="Conclusion..."></textarea>
+    </div>
+
+    <div class="preview-section">
+        <div class="section-label">Preview:</div>
+        <div class="preview-content" id="preview"></div>
+    </div>
+
+    <div class="button-group">
+        <button class="btn" onclick="copyAsLatex()">Copy LaTeX</button>
+        <button class="btn" onclick="copyAsText()">Copy Text</button>
+        <span class="copy-status" id="copyStatus">Copied!</span>
+    </div>
+
+    <div class="latex-output" id="latexOutput" style="display: none;"></div>
+
+    <div class="shortcuts-panel">
+        <div class="shortcuts-title">Symbol shortcuts (type + space):</div>
+        <div class="shortcut-grid">
+            <div class="shortcut-item">
+                <span class="shortcut-from">n</span>
+                <span class="shortcut-to">∩</span>
+            </div>
+            <div class="shortcut-item">
+                <span class="shortcut-from">u</span>
+                <span class="shortcut-to">∪</span>
+            </div>
+            <div class="shortcut-item">
+                <span class="shortcut-from">v</span>
+                <span class="shortcut-to">∨</span>
+            </div>
+            <div class="shortcut-item">
+                <span class="shortcut-from">^</span>
+                <span class="shortcut-to">∧</span>
+            </div>
+            <div class="shortcut-item">
+                <span class="shortcut-from">!</span>
+                <span class="shortcut-to">¬</span>
+            </div>
+            <div class="shortcut-item">
+                <span class="shortcut-from">~</span>
+                <span class="shortcut-to">¬</span>
+            </div>
+            <div class="shortcut-item">
+                <span class="shortcut-from">-></span>
+                <span class="shortcut-to">→</span>
+            </div>
+            <div class="shortcut-item">
+                <span class="shortcut-from"><-></span>
+                <span class="shortcut-to">↔</span>
+            </div>
+            <div class="shortcut-item">
+                <span class="shortcut-from"><=></span>
+                <span class="shortcut-to">⇔</span>
+            </div>
+            <div class="shortcut-item">
+                <span class="shortcut-from">=></span>
+                <span class="shortcut-to">⇒</span>
+            </div>
+            <div class="shortcut-item">
+                <span class="shortcut-from">!=</span>
+                <span class="shortcut-to">≠</span>
+            </div>
+            <div class="shortcut-item">
+                <span class="shortcut-from">equiv</span>
+                <span class="shortcut-to">≡</span>
+            </div>
+            <div class="shortcut-item">
+                <span class="shortcut-from">T</span>
+                <span class="shortcut-to">⊤</span>
+            </div>
+            <div class="shortcut-item">
+                <span class="shortcut-from">F</span>
+                <span class="shortcut-to">⊥</span>
+            </div>
+            <div class="shortcut-item">
+                <span class="shortcut-from">xor</span>
+                <span class="shortcut-to">⊕</span>
+            </div>
+            <div class="shortcut-item">
+                <span class="shortcut-from">therefore</span>
+                <span class="shortcut-to">∴</span>
+            </div>
+            <div class="shortcut-item">
+                <span class="shortcut-from">forall</span>
+                <span class="shortcut-to">∀</span>
+            </div>
+            <div class="shortcut-item">
+                <span class="shortcut-from">exists</span>
+                <span class="shortcut-to">∃</span>
+            </div>
+            <div class="shortcut-item">
+                <span class="shortcut-from">in</span>
+                <span class="shortcut-to">∈</span>
+            </div>
+            <div class="shortcut-item">
+                <span class="shortcut-from">empty</span>
+                <span class="shortcut-to">∅</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const replacements = {
+            // Multi-character replacements (must come first)
+            '<->': '↔',
+            '<=>': '⇔',
+            '->': '→',
+            '=>': '⇒',
+            '!=': '≠',
+            'equiv': '≡',
+            'xor': '⊕',
+            'therefore': '∴',
+            'forall': '∀',
+            'exists': '∃',
+            'empty': '∅',
+            'in': '∈',
+            
+            // Single character replacements
+            'n': '∩',
+            'u': '∪',
+            'v': '∨',
+            '^': '∧',
+            '!': '¬',
+            '~': '¬',
+            'T': '⊤',
+            'F': '⊥'
+        };
+
+        const latexMap = {
+            '∩': '\\cap',
+            '∪': '\\cup',
+            '∨': '\\lor',
+            '∧': '\\land',
+            '¬': '\\neg',
+            '→': '\\rightarrow',
+            '↔': '\\leftrightarrow',
+            '⇔': '\\Leftrightarrow',
+            '⇒': '\\Rightarrow',
+            '≠': '\\neq',
+            '≡': '\\equiv',
+            '⊤': '\\top',
+            '⊥': '\\bot',
+            '⊕': '\\oplus',
+            '∴': '\\therefore',
+            '∀': '\\forall',
+            '∃': '\\exists',
+            '∈': '\\in',
+            '∅': '\\emptyset'
+        };
+
+        let lineCount = 1;
+
+        function addLine() {
+            lineCount++;
+            const container = document.getElementById('proofLines');
+            const newLine = document.createElement('div');
+            newLine.className = 'proof-line';
+            newLine.innerHTML = `
+                <div class="line-number">${lineCount}.</div>
+                <input type="text" class="proof-input" placeholder="expression">
+                <input type="text" class="reason-input" placeholder="reason">
+            `;
+            container.appendChild(newLine);
+            
+            // Add event listeners to the new inputs
+            const proofInput = newLine.querySelector('.proof-input');
+            const reasonInput = newLine.querySelector('.reason-input');
+            
+            proofInput.addEventListener('input', handleInput);
+            proofInput.addEventListener('input', updatePreview);
+            proofInput.addEventListener('keydown', handleEnterKey);
+            
+            reasonInput.addEventListener('input', updatePreview);
+            reasonInput.addEventListener('keydown', handleEnterKey);
+            
+            // Focus on the new proof input
+            proofInput.focus();
+        }
+
+        function handleEnterKey(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                
+                const currentInput = e.target;
+                const currentLine = currentInput.closest('.proof-line');
+                const allInputs = Array.from(document.querySelectorAll('.proof-input, .reason-input'));
+                const currentIndex = allInputs.indexOf(currentInput);
+                
+                // If we're at the last input, add a new line
+                if (currentIndex === allInputs.length - 1) {
+                    addLine();
+                } else {
+                    // Move to the next input
+                    allInputs[currentIndex + 1].focus();
+                }
+            }
+        }
+
+        function handleInput(e) {
+            const input = e.target;
+            const start = input.selectionStart;
+            const end = input.selectionEnd;
+            let value = input.value;
+            let newCursorPos = start;
+            
+            // Apply replacements to proof inputs and text areas (not reason inputs)
+            if (input.classList.contains('proof-input') || input.classList.contains('text-area')) {
+                // Check if space was just typed
+                if (value[start - 1] === ' ') {
+                    // Get the word before the space
+                    const beforeCursor = value.substring(0, start - 1);
+                    const words = beforeCursor.split(/\s+/);
+                    const lastWord = words[words.length - 1];
+                    
+                    // Check if the last word matches any replacement
+                    for (const [key, symbol] of Object.entries(replacements)) {
+                        if (lastWord === key) {
+                            const wordStart = beforeCursor.lastIndexOf(lastWord);
+                            value = value.substring(0, wordStart) + 
+                                    symbol + 
+                                    value.substring(wordStart + key.length);
+                            newCursorPos = wordStart + symbol.length + 1;
+                            break;
+                        }
+                    }
+                }
+            }
+            
+            input.value = value;
+            input.setSelectionRange(newCursorPos, newCursorPos);
+        }
+
+        function updatePreview() {
+            const preview = document.getElementById('preview');
+            const preText = document.getElementById('preText').value;
+            const postText = document.getElementById('postText').value;
+            const lines = document.querySelectorAll('.proof-line');
+            let html = '';
+            
+            // Add pre-text if exists
+            if (preText) {
+                html += `<div class="preview-text">Given:\n${preText}</div>`;
+            }
+            
+            // Add proof lines
+            let hasProofLines = false;
+            lines.forEach((line, index) => {
+                const expr = line.querySelector('.proof-input').value;
+                const reason = line.querySelector('.reason-input').value;
+                
+                if (expr) {
+                    if (!hasProofLines) {
+                        html += '<div style="margin: 10px 0;">Proof:</div>';
+                        hasProofLines = true;
+                    }
+                    html += `<div class="preview-line">
+                        <div class="preview-expr">${index + 1}. ${expr}</div>
+                        ${reason ? `<div class="preview-reason">[${reason}]</div>` : ''}
+                    </div>`;
+                }
+            });
+            
+            // Add post-text if exists
+            if (postText) {
+                html += `<div class="preview-text">Therefore:\n${postText}</div>`;
+            }
+            
+            preview.innerHTML = html || '';
+        }
+
+        function convertToLatex(text) {
+            let latex = text;
+            for (const [symbol, latexCmd] of Object.entries(latexMap)) {
+                latex = latex.replace(new RegExp(escapeRegex(symbol), 'g'), latexCmd + ' ');
+            }
+            return latex;
+        }
+
+        function escapeRegex(string) {
+            return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        }
+
+        function copyAsLatex() {
+            const preText = document.getElementById('preText').value;
+            const postText = document.getElementById('postText').value;
+            const lines = document.querySelectorAll('.proof-line');
+            let latex = '';
+            
+            // Add pre-text if exists
+            if (preText) {
+                latex += '\\textbf{Given:}\\\\\n' + preText.replace(/\n/g, '\\\\\n') + '\\\\\n\n';
+            }
+            
+            // Add proof section
+            latex += '\\textbf{Proof:}\\\\\n';
+            latex += '\\begin{align}\n';
+            
+            lines.forEach((line, index) => {
+                const expr = line.querySelector('.proof-input').value;
+                const reason = line.querySelector('.reason-input').value;
+                
+                if (expr) {
+                    const latexExpr = convertToLatex(expr);
+                    latex += `  &${latexExpr}`;
+                    if (reason) {
+                        latex += ` && \\text{[${reason}]}`;
+                    }
+                    if (index < lines.length - 1) {
+                        latex += ' \\\\';
+                    }
+                    latex += '\n';
+                }
+            });
+            
+            latex += '\\end{align}\n';
+            
+            // Add post-text if exists
+            if (postText) {
+                latex += '\n\\textbf{Therefore:}\\\\\n' + postText.replace(/\n/g, '\\\\\n');
+            }
+            
+            // Show LaTeX output
+            const latexOutput = document.getElementById('latexOutput');
+            latexOutput.textContent = latex;
+            latexOutput.style.display = 'block';
+            
+            // Copy to clipboard
+            navigator.clipboard.writeText(latex).then(() => {
+                showCopyStatus();
+            });
+        }
+
+        function copyAsText() {
+            const preText = document.getElementById('preText').value;
+            const postText = document.getElementById('postText').value;
+            const lines = document.querySelectorAll('.proof-line');
+            let text = '';
+            
+            // Add pre-text if exists
+            if (preText) {
+                text += 'Given:\n' + preText + '\n\n';
+            }
+            
+            // Add proof lines
+            text += 'Proof:\n';
+            lines.forEach((line, index) => {
+                const expr = line.querySelector('.proof-input').value;
+                const reason = line.querySelector('.reason-input').value;
+                
+                if (expr) {
+                    text += `${index + 1}. ${expr}`;
+                    if (reason) {
+                        text += `\t[${reason}]`;
+                    }
+                    text += '\n';
+                }
+            });
+            
+            // Add post-text if exists
+            if (postText) {
+                text += '\nTherefore:\n' + postText;
+            }
+            
+            navigator.clipboard.writeText(text).then(() => {
+                showCopyStatus();
+            });
+        }
+
+        function showCopyStatus() {
+            const status = document.getElementById('copyStatus');
+            status.classList.add('show');
+            setTimeout(() => {
+                status.classList.remove('show');
+            }, 2000);
+        }
+
+        // Initialize event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add event listeners to initial proof inputs
+            const proofInputs = document.querySelectorAll('.proof-input');
+            const reasonInputs = document.querySelectorAll('.reason-input');
+            
+            proofInputs.forEach(input => {
+                input.addEventListener('input', handleInput);
+                input.addEventListener('input', updatePreview);
+                input.addEventListener('keydown', handleEnterKey);
+            });
+            
+            reasonInputs.forEach(input => {
+                input.addEventListener('input', updatePreview);
+                input.addEventListener('keydown', handleEnterKey);
+            });
+            
+            // Add event listeners to text areas
+            document.getElementById('preText').addEventListener('input', handleInput);
+            document.getElementById('preText').addEventListener('input', updatePreview);
+            document.getElementById('postText').addEventListener('input', handleInput);
+            document.getElementById('postText').addEventListener('input', updatePreview);
+        });
+    </script>
+</body>
+</html>
