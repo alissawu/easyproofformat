@@ -39,7 +39,7 @@ const latexMap = {
     '⊕': '\\oplus',
     '∴': '\\therefore',
     '∀': '\\forall',
-    '∃': '\\exists',
+    '∃': '\\thereexists',
     '∈': '\\in',
     '∅': '\\emptyset'
 };
