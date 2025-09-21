@@ -512,29 +512,17 @@ function copyAsText() {
         text += 'Given:\n' + preText + '\n\n';
     }
     
-    // Add proof lines - first find the longest expression for alignment
-    let maxExprLength = 0;
-    lines.forEach((line, index) => {
-        const expr = line.querySelector('.proof-input').value;
-        if (expr) {
-            const lineStart = `${index + 1}. ${expr}`;
-            maxExprLength = Math.max(maxExprLength, lineStart.length);
-        }
-    });
-    
-    // Add padding to align reasons
+    // Add proof lines using tabs for alignment
     text += 'Proof:\n';
     lines.forEach((line, index) => {
         const expr = line.querySelector('.proof-input').value;
         const reason = line.querySelector('.reason-input').value;
         
         if (expr) {
-            const lineStart = `${index + 1}. ${expr}`;
-            text += lineStart;
+            text += `${index + 1}. ${expr}`;
             if (reason) {
-                // Add spaces to align reasons
-                const padding = ' '.repeat(Math.max(4, maxExprLength - lineStart.length + 4));
-                text += padding + `[${reason}]`;
+                // Use tabs for consistent alignment across different fonts
+                text += `\t[${reason}]`;
             }
             text += '\n';
         }
