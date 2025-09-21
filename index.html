@@ -49,10 +49,15 @@
         
         .proof-line {
             display: grid;
-            grid-template-columns: 30px 1fr 1fr;
+            grid-template-columns: 30px 1fr 1fr 50px;
             gap: 10px;
             margin-bottom: 8px;
             align-items: center;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #ccc;
+        }
+        .proof-line:last-child {
+            border-bottom: none;
         }
         .line-number {
             text-align: right;
@@ -67,8 +72,27 @@
         .proof-input:focus, .reason-input:focus {
             outline: 1px solid #000;
         }
-        .add-line-btn {
+        .line-actions {
+            display: flex;
+            gap: 5px;
+        }
+        .line-btn {
+            padding: 2px 6px;
+            background: white;
+            border: 1px solid #999;
+            cursor: pointer;
+            font-size: 11px;
+            font-family: monospace;
+        }
+        .line-btn:hover {
+            background: #f0f0f0;
+        }
+        .proof-controls {
             margin-top: 10px;
+            display: flex;
+            gap: 10px;
+        }
+        .control-btn {
             padding: 4px 8px;
             background: white;
             border: 1px solid #666;
@@ -76,7 +100,7 @@
             font-family: monospace;
             font-size: 12px;
         }
-        .add-line-btn:hover {
+        .control-btn:hover {
             background: #f0f0f0;
         }
         .preview-section {
@@ -92,7 +116,11 @@
         .preview-line {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 5px;
+            padding: 5px 0;
+            border-bottom: 1px solid #ddd;
+        }
+        .preview-line:last-child {
+            border-bottom: none;
         }
         .preview-expr {
             flex: 1;
@@ -172,7 +200,7 @@
 </head>
 <body>
     <h1>Boolean Algebra Proof Editor</h1>
-    <div class="subtitle">Enter → next field | Space → convert symbol | Auto-creates lines</div>
+    <div class="subtitle">Enter → next field | Shift+Enter → insert line below | Space → convert symbol | ! and ~ instant → ¬</div>
     
     <div class="text-section">
         <div class="section-label">Given / Problem:</div>
@@ -182,14 +210,21 @@
     <div class="proof-container">
         <div class="section-label">Proof:</div>
         <div id="proofLines">
-            <div class="proof-line">
+            <div class="proof-line" data-line-id="1">
                 <div class="line-number">1.</div>
                 <input type="text" class="proof-input" placeholder="expression">
                 <input type="text" class="reason-input" placeholder="reason">
+                <div class="line-actions">
+                    <button class="line-btn" onclick="clearLine(1)">clr</button>
+                    <button class="line-btn" onclick="deleteLine(1)">del</button>
+                </div>
             </div>
         </div>
-        <button class="add-line-btn" onclick="addLine()">+ Add Line</button>
-        <div class="hint">Shortcuts: v→∨  ^→∧  !→¬  ->→→  <->→↔</div>
+        <div class="proof-controls">
+            <button class="control-btn" onclick="addLine()">+ Add Line</button>
+            <button class="control-btn" onclick="clearAllLines()">Clear All</button>
+        </div>
+        <div class="hint">Shortcuts: v→∨  ^→∧  !,~→¬  ->→→  <->→↔</div>
     </div>
 
     <div class="text-section">
@@ -211,7 +246,7 @@
     <div class="latex-output" id="latexOutput" style="display: none;"></div>
 
     <div class="shortcuts-panel">
-        <div class="shortcuts-title">Symbol shortcuts (type + space):</div>
+        <div class="shortcuts-title">Symbol shortcuts (type + space, or ! and ~ instant):</div>
         <div class="shortcut-grid">
             <div class="shortcut-item">
                 <span class="shortcut-from">n</span>
@@ -317,10 +352,13 @@
             'u': '∪',
             'v': '∨',
             '^': '∧',
-            '!': '¬',
-            '~': '¬',
             'T': '⊤',
             'F': '⊥'
+        };
+
+        const instantReplacements = {
+            '!': '¬',
+            '~': '¬'
         };
 
         const latexMap = {
@@ -346,16 +384,23 @@
         };
 
         let lineCount = 1;
+        let allLines = [1];
 
         function addLine() {
             lineCount++;
+            allLines.push(lineCount);
             const container = document.getElementById('proofLines');
             const newLine = document.createElement('div');
             newLine.className = 'proof-line';
+            newLine.setAttribute('data-line-id', lineCount);
             newLine.innerHTML = `
-                <div class="line-number">${lineCount}.</div>
+                <div class="line-number">${allLines.indexOf(lineCount) + 1}.</div>
                 <input type="text" class="proof-input" placeholder="expression">
                 <input type="text" class="reason-input" placeholder="reason">
+                <div class="line-actions">
+                    <button class="line-btn" onclick="clearLine(${lineCount})">clr</button>
+                    <button class="line-btn" onclick="deleteLine(${lineCount})">del</button>
+                </div>
             `;
             container.appendChild(newLine);
             
@@ -374,6 +419,41 @@
             proofInput.focus();
         }
 
+        function clearLine(lineId) {
+            const line = document.querySelector(`[data-line-id="${lineId}"]`);
+            if (line) {
+                line.querySelector('.proof-input').value = '';
+                line.querySelector('.reason-input').value = '';
+                updatePreview();
+            }
+        }
+
+        function deleteLine(lineId) {
+            const line = document.querySelector(`[data-line-id="${lineId}"]`);
+            if (line && allLines.length > 1) {
+                allLines = allLines.filter(id => id !== lineId);
+                line.remove();
+                renumberLines();
+                updatePreview();
+            }
+        }
+
+        function clearAllLines() {
+            const container = document.getElementById('proofLines');
+            container.innerHTML = '';
+            lineCount = 0;
+            allLines = [];
+            addLine();
+            updatePreview();
+        }
+
+        function renumberLines() {
+            const lines = document.querySelectorAll('.proof-line');
+            lines.forEach((line, index) => {
+                line.querySelector('.line-number').textContent = `${index + 1}.`;
+            });
+        }
+
         function handleEnterKey(e) {
             if (e.key === 'Enter') {
                 e.preventDefault();
@@ -383,40 +463,92 @@
                 const allInputs = Array.from(document.querySelectorAll('.proof-input, .reason-input'));
                 const currentIndex = allInputs.indexOf(currentInput);
                 
-                // If we're at the last input, add a new line
-                if (currentIndex === allInputs.length - 1) {
-                    addLine();
+                // Check if Shift is held - if so, insert line after current
+                if (e.shiftKey) {
+                    insertLineAfter(currentLine);
                 } else {
-                    // Move to the next input
-                    allInputs[currentIndex + 1].focus();
+                    // Normal Enter behavior - move to next field
+                    if (currentIndex === allInputs.length - 1) {
+                        addLine();
+                    } else {
+                        allInputs[currentIndex + 1].focus();
+                    }
                 }
             }
+        }
+
+        function insertLineAfter(currentLine) {
+            lineCount++;
+            const currentLineId = parseInt(currentLine.getAttribute('data-line-id'));
+            const currentLineIndex = allLines.indexOf(currentLineId);
+            allLines.splice(currentLineIndex + 1, 0, lineCount);
+            
+            const newLine = document.createElement('div');
+            newLine.className = 'proof-line';
+            newLine.setAttribute('data-line-id', lineCount);
+            newLine.innerHTML = `
+                <div class="line-number">${currentLineIndex + 2}.</div>
+                <input type="text" class="proof-input" placeholder="expression">
+                <input type="text" class="reason-input" placeholder="reason">
+                <div class="line-actions">
+                    <button class="line-btn" onclick="clearLine(${lineCount})">clr</button>
+                    <button class="line-btn" onclick="deleteLine(${lineCount})">del</button>
+                </div>
+            `;
+            
+            // Insert after current line
+            currentLine.insertAdjacentElement('afterend', newLine);
+            
+            // Renumber all lines
+            renumberLines();
+            
+            // Add event listeners to the new inputs
+            const proofInput = newLine.querySelector('.proof-input');
+            const reasonInput = newLine.querySelector('.reason-input');
+            
+            proofInput.addEventListener('input', handleInput);
+            proofInput.addEventListener('input', updatePreview);
+            proofInput.addEventListener('keydown', handleEnterKey);
+            
+            reasonInput.addEventListener('input', updatePreview);
+            reasonInput.addEventListener('keydown', handleEnterKey);
+            
+            // Focus on the new proof input
+            proofInput.focus();
         }
 
         function handleInput(e) {
             const input = e.target;
             const start = input.selectionStart;
-            const end = input.selectionEnd;
             let value = input.value;
             let newCursorPos = start;
             
             // Apply replacements to proof inputs and text areas (not reason inputs)
             if (input.classList.contains('proof-input') || input.classList.contains('text-area')) {
-                // Check if space was just typed
-                if (value[start - 1] === ' ') {
-                    // Get the word before the space
-                    const beforeCursor = value.substring(0, start - 1);
-                    const words = beforeCursor.split(/\s+/);
-                    const lastWord = words[words.length - 1];
+                // First check for instant replacements (! and ~)
+                const justTyped = value[start - 1];
+                if (instantReplacements[justTyped]) {
+                    value = value.substring(0, start - 1) + 
+                            instantReplacements[justTyped] + 
+                            value.substring(start);
+                    newCursorPos = start;
+                }
+                // Check if space was just typed for other replacements
+                else if (justTyped === ' ') {
+                    // Get everything before the space
+                    const beforeSpace = value.substring(0, start - 1);
                     
-                    // Check if the last word matches any replacement
-                    for (const [key, symbol] of Object.entries(replacements)) {
-                        if (lastWord === key) {
-                            const wordStart = beforeCursor.lastIndexOf(lastWord);
-                            value = value.substring(0, wordStart) + 
+                    // Check each replacement, starting with longest strings first
+                    const sortedReplacements = Object.entries(replacements).sort((a, b) => b[0].length - a[0].length);
+                    
+                    for (const [key, symbol] of sortedReplacements) {
+                        // Check if the key appears right before the space
+                        if (beforeSpace.endsWith(key)) {
+                            const keyStart = beforeSpace.length - key.length;
+                            value = value.substring(0, keyStart) + 
                                     symbol + 
-                                    value.substring(wordStart + key.length);
-                            newCursorPos = wordStart + symbol.length + 1;
+                                    value.substring(keyStart + key.length);
+                            newCursorPos = keyStart + symbol.length + 1;
                             break;
                         }
                     }
@@ -538,16 +670,29 @@
                 text += 'Given:\n' + preText + '\n\n';
             }
             
-            // Add proof lines
+            // Add proof lines - first find the longest expression for alignment
+            let maxExprLength = 0;
+            lines.forEach((line, index) => {
+                const expr = line.querySelector('.proof-input').value;
+                if (expr) {
+                    const lineStart = `${index + 1}. ${expr}`;
+                    maxExprLength = Math.max(maxExprLength, lineStart.length);
+                }
+            });
+            
+            // Add padding to align reasons
             text += 'Proof:\n';
             lines.forEach((line, index) => {
                 const expr = line.querySelector('.proof-input').value;
                 const reason = line.querySelector('.reason-input').value;
                 
                 if (expr) {
-                    text += `${index + 1}. ${expr}`;
+                    const lineStart = `${index + 1}. ${expr}`;
+                    text += lineStart;
                     if (reason) {
-                        text += `\t[${reason}]`;
+                        // Add spaces to align reasons
+                        const padding = ' '.repeat(Math.max(4, maxExprLength - lineStart.length + 4));
+                        text += padding + `[${reason}]`;
                     }
                     text += '\n';
                 }
