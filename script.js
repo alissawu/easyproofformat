@@ -51,7 +51,7 @@ let allLines = [1];
 // Optional shortcuts that can be toggled
 const optionalShortcuts = {
     'forall': '∀',
-    'exists': '∃',
+    'thereexists': '∃',
     'in': '∈',
     'empty': '∅',
     'equiv': '≡',
