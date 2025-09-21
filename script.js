@@ -512,17 +512,34 @@ function copyAsText() {
         text += 'Given:\n' + preText + '\n\n';
     }
     
-    // Add proof lines using tabs for alignment
+    // Calculate max length for tab alignment
+    let maxLength = 0;
+    lines.forEach((line, index) => {
+        const expr = line.querySelector('.proof-input').value;
+        if (expr) {
+            const lineStart = `${index + 1}. ${expr}`;
+            maxLength = Math.max(maxLength, lineStart.length);
+        }
+    });
+    
+    // Calculate tab width (assuming 8 chars per tab)
+    const tabWidth = 8;
+    const targetColumn = Math.ceil((maxLength + 4) / tabWidth) * tabWidth;
+    
+    // Add proof lines using calculated tabs
     text += 'Proof:\n';
     lines.forEach((line, index) => {
         const expr = line.querySelector('.proof-input').value;
         const reason = line.querySelector('.reason-input').value;
         
         if (expr) {
-            text += `${index + 1}. ${expr}`;
+            const lineStart = `${index + 1}. ${expr}`;
+            text += lineStart;
             if (reason) {
-                // Use tabs for consistent alignment across different fonts
-                text += `\t[${reason}]`;
+                // Calculate how many tabs needed to reach target column
+                const currentLength = lineStart.length;
+                const tabsNeeded = Math.ceil((targetColumn - currentLength) / tabWidth);
+                text += '\t'.repeat(Math.max(1, tabsNeeded)) + `[${reason}]`;
             }
             text += '\n';
         }
