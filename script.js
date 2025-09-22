@@ -12,14 +12,14 @@ const replacements = {
     // Single character replacements
     'n': '∩',
     'u': '∪',
-    'v': '∨'
+    'v': '∨',
+    '^': '∧'
 };
 
 // Instant replacements (no space needed)
 const instantReplacements = {
     '!': '¬',
-    '~': '¬',
-    '^': '∧'
+    '~': '¬'
 };
 
 // LaTeX conversion map
@@ -386,11 +386,24 @@ function handleInput(e) {
                 // Check if the key appears right before the space
                 if (beforeSpace.endsWith(key)) {
                     const keyStart = beforeSpace.length - key.length;
-                    value = value.substring(0, keyStart) + 
-                            symbol + 
-                            value.substring(keyStart + key.length);
-                    newCursorPos = keyStart + symbol.length + 1;
-                    break;
+                    
+                    // For n, u, v, ^ - require space before (or start of string)
+                    if (key === 'n' || key === 'u' || key === 'v' || key === '^') {
+                        if (keyStart === 0 || beforeSpace[keyStart - 1] === ' ') {
+                            value = value.substring(0, keyStart) + 
+                                    symbol + 
+                                    value.substring(keyStart + key.length);
+                            newCursorPos = keyStart + symbol.length + 1;
+                            break;
+                        }
+                    } else {
+                        // All other replacements work as before (no space required before)
+                        value = value.substring(0, keyStart) + 
+                                symbol + 
+                                value.substring(keyStart + key.length);
+                        newCursorPos = keyStart + symbol.length + 1;
+                        break;
+                    }
                 }
             }
         }
