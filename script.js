@@ -762,7 +762,8 @@ function handleSetInput(e) {
     
     // Handle superscript/subscript modes
     if (superscriptMode || subscriptMode) {
-        if (justTyped && justTyped !== ' ' && justTyped.match(/[A-Za-z0-9+\-=()]/)) {
+        if (justTyped && justTyped !== ' ') {
+            // Try to convert to super/subscript
             const converted = convertToSuperSubScript(justTyped, superscriptMode);
             if (converted !== justTyped) {
                 value = value.substring(0, start - 1) + converted + value.substring(start);
@@ -773,6 +774,7 @@ function handleSetInput(e) {
                 updateSetPreview();
                 return;
             }
+            // If can't convert (like dots or symbols), just leave as is
         }
         // Space doesn't exit mode - needed for typing symbols like "n " → "∩"
     }
