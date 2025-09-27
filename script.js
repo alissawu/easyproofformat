@@ -811,7 +811,7 @@ function convertSetToLatex(text, isEquation) {
             for (const [symbol, latex] of Object.entries(setLatexMap)) {
                 latexContent = latexContent.replace(new RegExp(escapeRegex(symbol), 'g'), latex + ' ');
             }
-            return '$|' + latexContent + '|$';
+            return '$\\lvert ' + latexContent + '\\rvert$';
         });
     }
     
