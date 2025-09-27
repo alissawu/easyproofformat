@@ -583,7 +583,9 @@ const setReplacements = {
     'in': '∈',
     'notin': '∉',
     'subset': '⊆',
+    'psubset': '⊂',  // proper subset
     'superset': '⊇',
+    'psuperset': '⊃',  // proper superset
     'empty': '∅',
     'delta': 'Δ',
     '!=': '≠',
@@ -591,11 +593,54 @@ const setReplacements = {
     '<->': '↔',
     'forall': '∀',
     'thereexists': '∃',
+    'exists': '∃',  // alternate for exists
     
     // Single character replacements (require space before)
     'u': '∪',
     'n': '∩'
 };
+
+// Convert text to Unicode superscript or subscript
+function convertToSuperSubScript(text, isSuperscript) {
+    // Remove curly braces if present
+    if (text.startsWith('{') && text.endsWith('}')) {
+        text = text.slice(1, -1);
+    }
+    
+    const superscriptMap = {
+        '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴',
+        '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹',
+        'a': 'ᵃ', 'b': 'ᵇ', 'c': 'ᶜ', 'd': 'ᵈ', 'e': 'ᵉ',
+        'f': 'ᶠ', 'g': 'ᵍ', 'h': 'ʰ', 'i': 'ⁱ', 'j': 'ʲ',
+        'k': 'ᵏ', 'l': 'ˡ', 'm': 'ᵐ', 'n': 'ⁿ', 'o': 'ᵒ',
+        'p': 'ᵖ', 'r': 'ʳ', 's': 'ˢ', 't': 'ᵗ', 'u': 'ᵘ',
+        'v': 'ᵛ', 'w': 'ʷ', 'x': 'ˣ', 'y': 'ʸ', 'z': 'ᶻ',
+        'A': 'ᴬ', 'B': 'ᴮ', 'C': 'ᶜ', 'D': 'ᴰ', 'E': 'ᴱ',
+        'G': 'ᴳ', 'H': 'ᴴ', 'I': 'ᴵ', 'J': 'ᴶ', 'K': 'ᴷ',
+        'L': 'ᴸ', 'M': 'ᴹ', 'N': 'ᴺ', 'O': 'ᴼ', 'P': 'ᴾ',
+        'R': 'ᴿ', 'T': 'ᵀ', 'U': 'ᵁ', 'V': 'ⱽ', 'W': 'ᵂ',
+        '+': '⁺', '-': '⁻', '=': '⁼', '(': '⁽', ')': '⁾'
+    };
+    
+    const subscriptMap = {
+        '0': '₀', '1': '₁', '2': '₂', '3': '₃', '4': '₄',
+        '5': '₅', '6': '₆', '7': '₇', '8': '₈', '9': '₉',
+        'a': 'ₐ', 'e': 'ₑ', 'h': 'ₕ', 'i': 'ᵢ', 'j': 'ⱼ',
+        'k': 'ₖ', 'l': 'ₗ', 'm': 'ₘ', 'n': 'ₙ', 'o': 'ₒ',
+        'p': 'ₚ', 'r': 'ᵣ', 's': 'ₛ', 't': 'ₜ', 'u': 'ᵤ',
+        'v': 'ᵥ', 'x': 'ₓ',
+        '+': '₊', '-': '₋', '=': '₌', '(': '₍', ')': '₎'
+    };
+    
+    const map = isSuperscript ? superscriptMap : subscriptMap;
+    let result = '';
+    
+    for (let char of text) {
+        result += map[char] || char;
+    }
+    
+    return result;
+}
 
 // Tab switching
 function switchTab(tabName) {
@@ -641,8 +686,44 @@ function handleSetInput(e) {
     let value = input.value;
     let newCursorPos = start;
     
-    // Check if space was just typed
     const justTyped = value[start - 1];
+    
+    // Handle superscript (^) and subscript (_) - instant conversion
+    if (justTyped === '^' || justTyped === '_') {
+        // Look ahead to find what should be super/subscripted
+        const afterCaret = value.substring(start);
+        let endPos = start;
+        
+        // If next char is {, find matching }
+        if (afterCaret[0] === '{') {
+            const closePos = afterCaret.indexOf('}');
+            if (closePos > 0) {
+                endPos = start + closePos + 1;
+            }
+        } else {
+            // Otherwise take next single character or number sequence
+            const match = afterCaret.match(/^(\d+|[A-Za-z])/);
+            if (match) {
+                endPos = start + match[0].length;
+            }
+        }
+        
+        if (endPos > start) {
+            const content = value.substring(start, endPos);
+            const converted = convertToSuperSubScript(content, justTyped === '^');
+            
+            // Replace the ^ or _ and the content with the converted version
+            value = value.substring(0, start - 1) + converted + value.substring(endPos);
+            newCursorPos = start - 1 + converted.length;
+            
+            input.value = value;
+            input.setSelectionRange(newCursorPos, newCursorPos);
+            updateSetPreview();
+            return;
+        }
+    }
+    
+    // Check if space was just typed
     if (justTyped === ' ') {
         const beforeSpace = value.substring(0, start - 1);
         
@@ -775,9 +856,52 @@ function copySetAsLatex() {
     });
 }
 
+// Convert Unicode superscripts and subscripts back to LaTeX
+function convertUnicodeToLatex(text) {
+    // Map Unicode superscripts back to LaTeX
+    const superscriptToLatex = {
+        '⁰': '^{0}', '¹': '^{1}', '²': '^{2}', '³': '^{3}', '⁴': '^{4}',
+        '⁵': '^{5}', '⁶': '^{6}', '⁷': '^{7}', '⁸': '^{8}', '⁹': '^{9}',
+        'ᵃ': '^{a}', 'ᵇ': '^{b}', 'ᶜ': '^{c}', 'ᵈ': '^{d}', 'ᵉ': '^{e}',
+        'ᶠ': '^{f}', 'ᵍ': '^{g}', 'ʰ': '^{h}', 'ⁱ': '^{i}', 'ʲ': '^{j}',
+        'ᵏ': '^{k}', 'ˡ': '^{l}', 'ᵐ': '^{m}', 'ⁿ': '^{n}', 'ᵒ': '^{o}',
+        'ᵖ': '^{p}', 'ʳ': '^{r}', 'ˢ': '^{s}', 'ᵗ': '^{t}', 'ᵘ': '^{u}',
+        'ᵛ': '^{v}', 'ʷ': '^{w}', 'ˣ': '^{x}', 'ʸ': '^{y}', 'ᶻ': '^{z}',
+        'ᴬ': '^{A}', 'ᴮ': '^{B}', 'ᴰ': '^{D}', 'ᴱ': '^{E}',
+        'ᴳ': '^{G}', 'ᴴ': '^{H}', 'ᴵ': '^{I}', 'ᴶ': '^{J}', 'ᴷ': '^{K}',
+        'ᴸ': '^{L}', 'ᴹ': '^{M}', 'ᴺ': '^{N}', 'ᴼ': '^{O}', 'ᴾ': '^{P}',
+        'ᴿ': '^{R}', 'ᵀ': '^{T}', 'ᵁ': '^{U}', 'ⱽ': '^{V}', 'ᵂ': '^{W}',
+        '⁺': '^{+}', '⁻': '^{-}', '⁼': '^{=}', '⁽': '^{(}', '⁾': '^{)}'
+    };
+    
+    // Map Unicode subscripts back to LaTeX
+    const subscriptToLatex = {
+        '₀': '_{0}', '₁': '_{1}', '₂': '_{2}', '₃': '_{3}', '₄': '_{4}',
+        '₅': '_{5}', '₆': '_{6}', '₇': '_{7}', '₈': '_{8}', '₉': '_{9}',
+        'ₐ': '_{a}', 'ₑ': '_{e}', 'ₕ': '_{h}', 'ᵢ': '_{i}', 'ⱼ': '_{j}',
+        'ₖ': '_{k}', 'ₗ': '_{l}', 'ₘ': '_{m}', 'ₙ': '_{n}', 'ₒ': '_{o}',
+        'ₚ': '_{p}', 'ᵣ': '_{r}', 'ₛ': '_{s}', 'ₜ': '_{t}', 'ᵤ': '_{u}',
+        'ᵥ': '_{v}', 'ₓ': '_{x}',
+        '₊': '_{+}', '₋': '_{-}', '₌': '_{=}', '₍': '_{(}', '₎': '_{)}'
+    };
+    
+    let result = text;
+    
+    // Replace all Unicode super/subscripts with LaTeX
+    for (const [unicode, latex] of Object.entries(superscriptToLatex)) {
+        result = result.replace(new RegExp(unicode, 'g'), latex);
+    }
+    for (const [unicode, latex] of Object.entries(subscriptToLatex)) {
+        result = result.replace(new RegExp(unicode, 'g'), latex);
+    }
+    
+    return result;
+}
+
 // Convert set notation to LaTeX
 function convertSetToLatex(text, isEquation) {
-    let result = text;
+    // First convert Unicode superscripts/subscripts to LaTeX
+    let result = convertUnicodeToLatex(text);
     
     // LaTeX symbol mappings
     const setLatexMap = {
@@ -787,7 +911,9 @@ function convertSetToLatex(text, isEquation) {
         '∈': '\\in',
         '∉': '\\notin',
         '⊆': '\\subseteq',
+        '⊂': '\\subset',
         '⊇': '\\supseteq',
+        '⊃': '\\supset',
         '∅': '\\emptyset',
         'Δ': '\\Delta',
         '≠': '\\neq',
