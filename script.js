@@ -616,6 +616,24 @@ function switchTab(tabName) {
     event.target.classList.add('active');
 }
 
+// Handle keyboard events for set theory
+function handleSetKeydown(e) {
+    if (e.key === 'Tab') {
+        e.preventDefault();
+        const input = e.target;
+        const start = input.selectionStart;
+        const end = input.selectionEnd;
+        const value = input.value;
+        
+        // Insert tab character at cursor position
+        input.value = value.substring(0, start) + '\t' + value.substring(end);
+        input.setSelectionRange(start + 1, start + 1);
+        
+        // Trigger preview update
+        updateSetPreview();
+    }
+}
+
 // Handle input for set theory
 function handleSetInput(e) {
     const input = e.target;
@@ -861,6 +879,7 @@ document.addEventListener('DOMContentLoaded', function() {
     setInputs.forEach(input => {
         input.addEventListener('input', handleSetInput);
         input.addEventListener('input', updateSetPreview);
+        input.addEventListener('keydown', handleSetKeydown);
     });
     
     // Load saved shortcuts
