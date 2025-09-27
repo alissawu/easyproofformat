@@ -576,6 +576,263 @@ function showCopyStatus() {
     }, 2000);
 }
 
+// Set theory replacements
+const setReplacements = {
+    // Multi-character replacements
+    '\\': '∖',  // set difference
+    'in': '∈',
+    'notin': '∉',
+    'subset': '⊆',
+    'superset': '⊇',
+    'empty': '∅',
+    'delta': 'Δ',
+    '!=': '≠',
+    '->': '→',
+    '<->': '↔',
+    'forall': '∀',
+    'thereexists': '∃',
+    
+    // Single character replacements (require space before)
+    'u': '∪',
+    'n': '∩'
+};
+
+// Tab switching
+function switchTab(tabName) {
+    // Hide all tabs
+    document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    
+    // Remove active from all buttons
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    // Show selected tab
+    document.getElementById(`${tabName}-tab`).classList.add('active');
+    
+    // Activate button
+    event.target.classList.add('active');
+}
+
+// Handle input for set theory
+function handleSetInput(e) {
+    const input = e.target;
+    const start = input.selectionStart;
+    let value = input.value;
+    let newCursorPos = start;
+    
+    // Check if space was just typed
+    const justTyped = value[start - 1];
+    if (justTyped === ' ') {
+        const beforeSpace = value.substring(0, start - 1);
+        
+        // Sort replacements by length (longest first)
+        const sortedReplacements = Object.entries(setReplacements).sort((a, b) => b[0].length - a[0].length);
+        
+        for (const [key, symbol] of sortedReplacements) {
+            if (beforeSpace.endsWith(key)) {
+                const keyStart = beforeSpace.length - key.length;
+                
+                // For u and n, require space before or start of string or special chars
+                if (key === 'u' || key === 'n') {
+                    if (keyStart === 0 || 
+                        beforeSpace[keyStart - 1] === ' ' || 
+                        beforeSpace[keyStart - 1] === '(' ||
+                        beforeSpace[keyStart - 1] === '|' ||
+                        beforeSpace[keyStart - 1] === '-' ||
+                        beforeSpace[keyStart - 1] === '∩' ||
+                        beforeSpace[keyStart - 1] === '∪') {
+                        value = value.substring(0, keyStart) + 
+                                symbol + 
+                                value.substring(keyStart + key.length);
+                        newCursorPos = keyStart + symbol.length + 1;
+                        break;
+                    }
+                } else {
+                    value = value.substring(0, keyStart) + 
+                            symbol + 
+                            value.substring(keyStart + key.length);
+                    newCursorPos = keyStart + symbol.length + 1;
+                    break;
+                }
+            }
+        }
+    }
+    
+    input.value = value;
+    input.setSelectionRange(newCursorPos, newCursorPos);
+}
+
+// Update preview for set theory
+function updateSetPreview() {
+    const preview = document.getElementById('setPreview');
+    const preText = document.getElementById('setPreText').value;
+    const proofText = document.getElementById('setProofText').value;
+    const postText = document.getElementById('setPostText').value;
+    
+    let html = '';
+    
+    // Add pre-text
+    if (preText) {
+        html += `<div class="preview-text">Given:\n${processSetText(preText)}</div>`;
+    }
+    
+    // Process proof text
+    if (proofText) {
+        html += '<div style="margin: 10px 0;">Proof:</div>';
+        const lines = proofText.split('\n');
+        lines.forEach(line => {
+            if (line.trim()) {
+                // Check if line starts with tab or spaces (for centered equations)
+                if (line.match(/^[\t ]/)) {
+                    html += `<div class="set-equation">${processSetText(line.trim())}</div>`;
+                } else {
+                    html += `<div style="margin: 5px 0;">${processSetText(line)}</div>`;
+                }
+            }
+        });
+    }
+    
+    // Add post-text
+    if (postText) {
+        html += `<div class="preview-text">Therefore:\n${processSetText(postText)}</div>`;
+    }
+    
+    preview.innerHTML = html || '';
+}
+
+// Process set text to handle |...| notation
+function processSetText(text) {
+    // Replace |...| with styled spans (keeping the pipes)
+    return text.replace(/\|([^|]+)\|/g, '<span class="set-inline">|$1|</span>');
+}
+
+// Copy set theory as LaTeX
+function copySetAsLatex() {
+    const preText = document.getElementById('setPreText').value;
+    const proofText = document.getElementById('setProofText').value;
+    const postText = document.getElementById('setPostText').value;
+    
+    let latex = '';
+    
+    // Add pre-text
+    if (preText) {
+        latex += '\\textbf{Given:}\\\\\n' + convertSetToLatex(preText, false) + '\\\\\n\n';
+    }
+    
+    // Process proof
+    if (proofText) {
+        latex += '\\textbf{Proof:}\\\\\n';
+        const lines = proofText.split('\n');
+        lines.forEach(line => {
+            if (line.trim()) {
+                if (line.match(/^[\t ]/)) {
+                    // Centered equation
+                    latex += '\\[' + convertSetToLatex(line.trim(), true) + '\\]\n';
+                } else {
+                    // Regular text with possible inline math
+                    latex += convertSetToLatex(line, false) + '\\\\\n';
+                }
+            } else {
+                latex += '\\\\\n';
+            }
+        });
+    }
+    
+    // Add post-text
+    if (postText) {
+        latex += '\n\\textbf{Therefore:}\\\\\n' + convertSetToLatex(postText, false);
+    }
+    
+    // Show and copy
+    const latexOutput = document.getElementById('setLatexOutput');
+    latexOutput.textContent = latex;
+    latexOutput.style.display = 'block';
+    
+    navigator.clipboard.writeText(latex).then(() => {
+        showSetCopyStatus();
+    });
+}
+
+// Convert set notation to LaTeX
+function convertSetToLatex(text, isEquation) {
+    let result = text;
+    
+    // LaTeX symbol mappings
+    const setLatexMap = {
+        '∪': '\\cup',
+        '∩': '\\cap',
+        '∖': '\\setminus',
+        '∈': '\\in',
+        '∉': '\\notin',
+        '⊆': '\\subseteq',
+        '⊇': '\\supseteq',
+        '∅': '\\emptyset',
+        'Δ': '\\Delta',
+        '≠': '\\neq',
+        '→': '\\rightarrow',
+        '↔': '\\leftrightarrow',
+        '∀': '\\forall',
+        '∃': '\\exists',
+        '¬': '\\neg',
+        '∧': '\\land',
+        '∨': '\\lor'
+    };
+    
+    if (isEquation) {
+        // Full equation - convert all symbols
+        for (const [symbol, latex] of Object.entries(setLatexMap)) {
+            result = result.replace(new RegExp(escapeRegex(symbol), 'g'), latex + ' ');
+        }
+    } else {
+        // Text with inline math - convert only within |...|
+        result = result.replace(/\|([^|]+)\|/g, (match, content) => {
+            let latexContent = content;
+            for (const [symbol, latex] of Object.entries(setLatexMap)) {
+                latexContent = latexContent.replace(new RegExp(escapeRegex(symbol), 'g'), latex + ' ');
+            }
+            return '$' + latexContent + '$';
+        });
+    }
+    
+    return result;
+}
+
+// Copy set theory as text
+function copySetAsText() {
+    const preText = document.getElementById('setPreText').value;
+    const proofText = document.getElementById('setProofText').value;
+    const postText = document.getElementById('setPostText').value;
+    
+    let text = '';
+    
+    if (preText) {
+        text += 'Given:\n' + preText + '\n\n';
+    }
+    
+    if (proofText) {
+        text += 'Proof:\n' + proofText + '\n';
+    }
+    
+    if (postText) {
+        text += '\nTherefore:\n' + postText;
+    }
+    
+    navigator.clipboard.writeText(text).then(() => {
+        showSetCopyStatus();
+    });
+}
+
+function showSetCopyStatus() {
+    const status = document.getElementById('setCopyStatus');
+    status.classList.add('show');
+    setTimeout(() => {
+        status.classList.remove('show');
+    }, 2000);
+}
+
 // Initialize event listeners
 document.addEventListener('DOMContentLoaded', function() {
     // Add event listeners to initial proof inputs
@@ -598,6 +855,13 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('preText').addEventListener('input', updatePreview);
     document.getElementById('postText').addEventListener('input', handleInput);
     document.getElementById('postText').addEventListener('input', updatePreview);
+    
+    // Set theory event listeners
+    const setInputs = document.querySelectorAll('.set-input');
+    setInputs.forEach(input => {
+        input.addEventListener('input', handleSetInput);
+        input.addEventListener('input', updateSetPreview);
+    });
     
     // Load saved shortcuts
     loadSavedShortcuts();

@@ -3,12 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Boolean Algebra Proof Editor</title>
+    <title>Proof Editor</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <h1>Boolean Algebra Proof Editor</h1>
-    <div class="subtitle">Enter → next field | Shift+Enter → insert line below | Space → convert symbol | ! ~ ^ instant → ¬ ¬ ∧</div>
+    <h1>Proof Editor</h1>
+    
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('boolean')">Boolean Algebra</button>
+        <button class="tab-btn" onclick="switchTab('sets')">Set Theory</button>
+    </div>
+    
+    <div id="boolean-tab" class="tab-content active">
+        <div class="subtitle">Enter → next field | Shift+Enter → insert line below | Space → convert symbol | ! ~ ^ instant → ¬ ¬ ∧</div>
     
     <div class="text-section">
         <div class="section-label">Given / Problem:</div>
@@ -45,15 +52,15 @@
         <div class="preview-content" id="preview"></div>
     </div>
 
-    <div class="button-group">
+        <div class="button-group">
         <button class="btn" onclick="copyAsLatex()">Copy LaTeX</button>
         <button class="btn" onclick="copyAsText()">Copy Text</button>
         <span class="copy-status" id="copyStatus">Copied!</span>
     </div>
 
-    <div class="latex-output" id="latexOutput" style="display: none;"></div>
+        <div class="latex-output" id="latexOutput" style="display: none;"></div>
 
-    <div class="shortcuts-panel">
+        <div class="shortcuts-panel">
         <div class="shortcuts-title">Core shortcuts (always on):</div>
         <div class="shortcut-grid">
             <div class="shortcut-item">
@@ -120,6 +127,97 @@
                 <input type="text" id="customTo" placeholder="symbol" style="width: 40px; padding: 2px; font-size: 12px;">
                 <button onclick="addCustomShortcut()" style="padding: 2px 6px; font-size: 12px;">Add</button>
             </div>
+        </div>
+        </div>
+    </div>
+    
+    <div id="sets-tab" class="tab-content">
+        <div class="subtitle">Wrap inline set notation in || • Tab/indent for centered equations • u→∪ n→∩ \→∖ with space</div>
+        
+        <div class="text-section">
+            <div class="section-label">Given / Problem:</div>
+            <textarea class="text-area set-input" id="setPreText" placeholder="Problem statement..."></textarea>
+        </div>
+
+        <div class="proof-container">
+            <div class="section-label">Proof:</div>
+            <textarea class="set-proof-area set-input" id="setProofText" placeholder="Type your proof here:
+• Wrap inline set notation in |pipes| like |A ∩ B|
+• Tab/indent lines for standalone centered equations
+• Use shortcuts: u→∪, n→∩, \→∖ (with space after)"></textarea>
+        </div>
+
+        <div class="text-section">
+            <div class="section-label">Therefore / Conclusion:</div>
+            <textarea class="text-area set-input" id="setPostText" placeholder="Conclusion..."></textarea>
+        </div>
+
+        <div class="preview-section">
+            <div class="section-label">Preview:</div>
+            <div class="preview-content" id="setPreview"></div>
+        </div>
+
+        <div class="button-group">
+            <button class="btn" onclick="copySetAsLatex()">Copy LaTeX</button>
+            <button class="btn" onclick="copySetAsText()">Copy Text</button>
+            <span class="copy-status" id="setCopyStatus">Copied!</span>
+        </div>
+
+        <div class="latex-output" id="setLatexOutput" style="display: none;"></div>
+
+        <div class="shortcuts-panel">
+            <div class="shortcuts-title">Set Theory Shortcuts (type then space):</div>
+            <div class="shortcut-grid">
+                <div class="shortcut-item">
+                    <span class="shortcut-from">u</span>
+                    <span class="shortcut-to">∪</span>
+                </div>
+                <div class="shortcut-item">
+                    <span class="shortcut-from">n</span>
+                    <span class="shortcut-to">∩</span>
+                </div>
+                <div class="shortcut-item">
+                    <span class="shortcut-from">\</span>
+                    <span class="shortcut-to">∖</span>
+                </div>
+                <div class="shortcut-item">
+                    <span class="shortcut-from">in</span>
+                    <span class="shortcut-to">∈</span>
+                </div>
+                <div class="shortcut-item">
+                    <span class="shortcut-from">notin</span>
+                    <span class="shortcut-to">∉</span>
+                </div>
+                <div class="shortcut-item">
+                    <span class="shortcut-from">subset</span>
+                    <span class="shortcut-to">⊆</span>
+                </div>
+                <div class="shortcut-item">
+                    <span class="shortcut-from">empty</span>
+                    <span class="shortcut-to">∅</span>
+                </div>
+                <div class="shortcut-item">
+                    <span class="shortcut-from">delta</span>
+                    <span class="shortcut-to">∆</span>
+                </div>
+                <div class="shortcut-item">
+                    <span class="shortcut-from">!=</span>
+                    <span class="shortcut-to">≠</span>
+                </div>
+                <div class="shortcut-item">
+                    <span class="shortcut-from">-></span>
+                    <span class="shortcut-to">→</span>
+                </div>
+                <div class="shortcut-item">
+                    <span class="shortcut-from"><-></span>
+                    <span class="shortcut-to">↔</span>
+                </div>
+                <div class="shortcut-item">
+                    <span class="shortcut-from">forall</span>
+                    <span class="shortcut-to">∀</span>
+                </div>
+            </div>
+            <div class="hint">Tips: |pipes| for inline math • Tab/spaces at line start for centered equations</div>
         </div>
     </div>
 
