@@ -578,22 +578,24 @@ function showCopyStatus() {
 
 // Set theory replacements
 const setReplacements = {
-    // Multi-character replacements
+    // Slash-triggered replacements (for words that might be used in regular text)
+    '/in': '∈',
+    '/notin': '∉',
+    '/subset': '⊆',
+    '/psubset': '⊂',  // proper subset
+    '/superset': '⊇',
+    '/psuperset': '⊃',  // proper superset
+    '/empty': '∅',
+    '/forall': '∀',
+    '/thereexists': '∃',
+    '/exists': '∃',  // alternate for exists
+    
+    // Direct replacements (less likely to conflict)
     '\\': '∖',  // set difference
-    'in': '∈',
-    'notin': '∉',
-    'subset': '⊆',
-    'psubset': '⊂',  // proper subset
-    'superset': '⊇',
-    'psuperset': '⊃',  // proper superset
-    'empty': '∅',
     'delta': 'Δ',
     '!=': '≠',
     '->': '→',
     '<->': '↔',
-    'forall': '∀',
-    'thereexists': '∃',
-    'exists': '∃',  // alternate for exists
     
     // Single character replacements (require space before)
     'u': '∪',
