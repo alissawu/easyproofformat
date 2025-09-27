@@ -276,12 +276,9 @@ h1 {
     text-align: center;
     margin: 10px 0;
     font-family: 'Cambria Math', 'Latin Modern Math', serif;
-    font-size: 18px;
-    line-height: 1.5;
+    font-size: 14px;
 }
 
 .set-inline {
     font-family: 'Cambria Math', 'Latin Modern Math', serif;
-    font-size: 1.05em;
-    padding: 0 2px;
 }
