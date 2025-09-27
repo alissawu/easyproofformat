@@ -275,10 +275,13 @@ h1 {
 .set-equation {
     text-align: center;
     margin: 10px 0;
-    font-family: serif;
-    font-size: 16px;
+    font-family: 'Cambria Math', 'Latin Modern Math', serif;
+    font-size: 18px;
+    line-height: 1.5;
 }
 
 .set-inline {
-    font-family: serif;
+    font-family: 'Cambria Math', 'Latin Modern Math', serif;
+    font-size: 1.05em;
+    padding: 0 2px;
 }

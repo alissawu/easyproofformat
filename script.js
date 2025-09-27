@@ -721,10 +721,11 @@ function updateSetPreview() {
     preview.innerHTML = html || '';
 }
 
-// Process set text to handle |...| notation
+// Process set text to handle |...| notation  
 function processSetText(text) {
-    // Replace |...| with styled spans (keeping the pipes)
-    return text.replace(/\|([^|]+)\|/g, '<span class="set-inline">|$1|</span>');
+    // Replace |...| with styled spans using proper mathematical vertical bars
+    // Using U+2223 (DIVIDES) which renders as taller vertical bars in math context
+    return text.replace(/\|([^|]+)\|/g, '<span class="set-inline">∣$1∣</span>');
 }
 
 // Copy set theory as LaTeX
