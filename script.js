@@ -661,8 +661,56 @@ function switchTab(tabName) {
     event.target.classList.add('active');
 }
 
+// Track superscript/subscript mode
+let superscriptMode = false;
+let subscriptMode = false;
+
 // Handle keyboard events for set theory
 function handleSetKeydown(e) {
+    // Handle Cmd/Ctrl + . for superscript toggle
+    if ((e.metaKey || e.ctrlKey) && e.key === '.') {
+        e.preventDefault();
+        superscriptMode = !superscriptMode;
+        subscriptMode = false; // Turn off subscript if on
+        
+        // Show visual indicator
+        updateModeIndicator();
+        return;
+    }
+    
+    // Handle Cmd/Ctrl + , for subscript toggle  
+    if ((e.metaKey || e.ctrlKey) && e.key === ',') {
+        e.preventDefault();
+        subscriptMode = !subscriptMode;
+        superscriptMode = false; // Turn off superscript if on
+        
+        // Show visual indicator
+        updateModeIndicator();
+        return;
+    }
+    
+    // Handle Escape to exit super/subscript modes
+    if (e.key === 'Escape') {
+        if (superscriptMode || subscriptMode) {
+            e.preventDefault();
+            superscriptMode = false;
+            subscriptMode = false;
+            updateModeIndicator();
+            return;
+        }
+    }
+    
+    // Handle arrow keys - exit super/subscript mode when navigating
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight' || e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+        if (superscriptMode || subscriptMode) {
+            superscriptMode = false;
+            subscriptMode = false;
+            updateModeIndicator();
+            // Don't prevent default - let the cursor move
+        }
+    }
+    
+    // Handle Tab for indentation
     if (e.key === 'Tab') {
         e.preventDefault();
         const input = e.target;
@@ -679,6 +727,28 @@ function handleSetKeydown(e) {
     }
 }
 
+// Update mode indicator
+function updateModeIndicator() {
+    // Find or create mode indicator
+    let indicator = document.getElementById('modeIndicator');
+    if (!indicator) {
+        indicator = document.createElement('div');
+        indicator.id = 'modeIndicator';
+        indicator.style.cssText = 'position: fixed; bottom: 20px; right: 20px; padding: 10px; background: #333; color: white; border-radius: 5px; font-family: monospace; display: none; z-index: 1000;';
+        document.body.appendChild(indicator);
+    }
+    
+    if (superscriptMode) {
+        indicator.textContent = 'Superscript Mode (Cmd+.)';
+        indicator.style.display = 'block';
+    } else if (subscriptMode) {
+        indicator.textContent = 'Subscript Mode (Cmd+,)';
+        indicator.style.display = 'block';
+    } else {
+        indicator.style.display = 'none';
+    }
+}
+
 // Handle input for set theory
 function handleSetInput(e) {
     const input = e.target;
@@ -688,39 +758,21 @@ function handleSetInput(e) {
     
     const justTyped = value[start - 1];
     
-    // Handle superscript (^) and subscript (_) - instant conversion
-    if (justTyped === '^' || justTyped === '_') {
-        // Look ahead to find what should be super/subscripted
-        const afterCaret = value.substring(start);
-        let endPos = start;
-        
-        // If next char is {, find matching }
-        if (afterCaret[0] === '{') {
-            const closePos = afterCaret.indexOf('}');
-            if (closePos > 0) {
-                endPos = start + closePos + 1;
-            }
-        } else {
-            // Otherwise take next single character or number sequence
-            const match = afterCaret.match(/^(\d+|[A-Za-z])/);
-            if (match) {
-                endPos = start + match[0].length;
+    // Handle superscript/subscript modes
+    if (superscriptMode || subscriptMode) {
+        if (justTyped && justTyped !== ' ' && justTyped.match(/[A-Za-z0-9+\-=()]/)) {
+            const converted = convertToSuperSubScript(justTyped, superscriptMode);
+            if (converted !== justTyped) {
+                value = value.substring(0, start - 1) + converted + value.substring(start);
+                newCursorPos = start - 1 + converted.length;
+                
+                input.value = value;
+                input.setSelectionRange(newCursorPos, newCursorPos);
+                updateSetPreview();
+                return;
             }
         }
-        
-        if (endPos > start) {
-            const content = value.substring(start, endPos);
-            const converted = convertToSuperSubScript(content, justTyped === '^');
-            
-            // Replace the ^ or _ and the content with the converted version
-            value = value.substring(0, start - 1) + converted + value.substring(endPos);
-            newCursorPos = start - 1 + converted.length;
-            
-            input.value = value;
-            input.setSelectionRange(newCursorPos, newCursorPos);
-            updateSetPreview();
-            return;
-        }
+        // Space doesn't exit mode - needed for typing symbols like "n " → "∩"
     }
     
     // Check if space was just typed
@@ -743,17 +795,39 @@ function handleSetInput(e) {
                         beforeSpace[keyStart - 1] === '-' ||
                         beforeSpace[keyStart - 1] === '∩' ||
                         beforeSpace[keyStart - 1] === '∪') {
+                        // Apply the symbol
+                        let replacedSymbol = symbol;
+                        
+                        // If in superscript/subscript mode, convert the symbol
+                        if (superscriptMode || subscriptMode) {
+                            const convertedSymbol = convertToSuperSubScript(symbol, superscriptMode);
+                            if (convertedSymbol !== symbol) {
+                                replacedSymbol = convertedSymbol;
+                            }
+                        }
+                        
                         value = value.substring(0, keyStart) + 
-                                symbol + 
+                                replacedSymbol + 
                                 value.substring(keyStart + key.length);
-                        newCursorPos = keyStart + symbol.length + 1;
+                        newCursorPos = keyStart + replacedSymbol.length + 1;
                         break;
                     }
                 } else {
+                    // Apply the symbol
+                    let replacedSymbol = symbol;
+                    
+                    // If in superscript/subscript mode, convert the symbol
+                    if (superscriptMode || subscriptMode) {
+                        const convertedSymbol = convertToSuperSubScript(symbol, superscriptMode);
+                        if (convertedSymbol !== symbol) {
+                            replacedSymbol = convertedSymbol;
+                        }
+                    }
+                    
                     value = value.substring(0, keyStart) + 
-                            symbol + 
+                            replacedSymbol + 
                             value.substring(keyStart + key.length);
-                    newCursorPos = keyStart + symbol.length + 1;
+                    newCursorPos = keyStart + replacedSymbol.length + 1;
                     break;
                 }
             }
