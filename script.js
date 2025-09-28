@@ -63,9 +63,11 @@ const optionalShortcuts = {
 
 // Track which optional shortcuts are active
 let activeOptional = new Set();
+let activeSetOptional = new Set();
 
 // Custom user-defined shortcuts
 let customShortcuts = {};
+let customSetShortcuts = {};
 
 // Load saved shortcuts from localStorage
 function loadSavedShortcuts() {
@@ -78,10 +80,21 @@ function loadSavedShortcuts() {
         if (savedActive) {
             activeOptional = new Set(JSON.parse(savedActive));
         }
+        
+        // Load set theory shortcuts
+        const savedSet = localStorage.getItem('customSetShortcuts');
+        if (savedSet) {
+            customSetShortcuts = JSON.parse(savedSet);
+        }
+        const savedSetActive = localStorage.getItem('activeSetOptional');
+        if (savedSetActive) {
+            activeSetOptional = new Set(JSON.parse(savedSetActive));
+        }
     } catch(e) {
         console.log('Could not load saved shortcuts');
     }
     renderOptionalShortcuts();
+    renderSetOptionalShortcuts();
 }
 
 function renderOptionalShortcuts() {
@@ -160,6 +173,86 @@ function getAllReplacements() {
         all[key] = optionalShortcuts[key];
     });
     return {...all, ...customShortcuts};
+}
+
+// Get all active replacements for Set Theory
+function getAllSetReplacements() {
+    let all = {...setReplacements};
+    activeSetOptional.forEach(key => {
+        all[key] = optionalShortcuts[key];
+    });
+    return {...all, ...customSetShortcuts};
+}
+
+// Render optional shortcuts for Set Theory tab
+function renderSetOptionalShortcuts() {
+    const container = document.getElementById('setOptionalShortcuts');
+    if (!container) return;
+    container.innerHTML = '';
+    
+    // Add optional shortcuts
+    Object.entries(optionalShortcuts).forEach(([from, to]) => {
+        const btn = document.createElement('button');
+        btn.style.cssText = 'padding: 2px 4px; font-size: 11px; background: white; border: 1px solid #999; cursor: pointer;';
+        if (activeSetOptional.has(from)) {
+            btn.style.background = '#ddd';
+            btn.style.fontWeight = 'bold';
+        }
+        btn.textContent = `${from}→${to}`;
+        btn.onclick = () => {
+            if (activeSetOptional.has(from)) {
+                activeSetOptional.delete(from);
+            } else {
+                activeSetOptional.add(from);
+            }
+            localStorage.setItem('activeSetOptional', JSON.stringify(Array.from(activeSetOptional)));
+            renderSetOptionalShortcuts();
+        };
+        container.appendChild(btn);
+    });
+    
+    // Add custom shortcuts
+    Object.entries(customSetShortcuts).forEach(([from, to]) => {
+        const btn = document.createElement('button');
+        btn.style.cssText = 'padding: 2px 4px; font-size: 11px; background: #e0e0e0; border: 1px solid #999; cursor: pointer;';
+        if (activeSetOptional.has(from)) {
+            btn.style.background = '#ccc';
+            btn.style.fontWeight = 'bold';
+        }
+        btn.textContent = `${from}→${to} ×`;
+        btn.onclick = () => {
+            const isDelete = event.target === btn && event.offsetX > btn.offsetWidth - 20;
+            if (isDelete) {
+                delete customSetShortcuts[from];
+                activeSetOptional.delete(from);
+                localStorage.setItem('customSetShortcuts', JSON.stringify(customSetShortcuts));
+                localStorage.setItem('activeSetOptional', JSON.stringify(Array.from(activeSetOptional)));
+                renderSetOptionalShortcuts();
+            } else {
+                if (activeSetOptional.has(from)) {
+                    activeSetOptional.delete(from);
+                } else {
+                    activeSetOptional.add(from);
+                }
+                localStorage.setItem('activeSetOptional', JSON.stringify(Array.from(activeSetOptional)));
+                renderSetOptionalShortcuts();
+            }
+        };
+        container.appendChild(btn);
+    });
+}
+
+// Add custom shortcut for Set Theory
+function addSetCustomShortcut() {
+    const from = document.getElementById('setCustomFrom').value;
+    const to = document.getElementById('setCustomTo').value;
+    if (from && to) {
+        customSetShortcuts[from] = to;
+        localStorage.setItem('customSetShortcuts', JSON.stringify(customSetShortcuts));
+        renderSetOptionalShortcuts();
+        document.getElementById('setCustomFrom').value = '';
+        document.getElementById('setCustomTo').value = '';
+    }
 }
 
 // Line management functions
@@ -801,8 +894,9 @@ function handleSetInput(e) {
     if (justTyped === ' ') {
         const beforeSpace = value.substring(0, start - 1);
         
-        // Sort replacements by length (longest first)
-        const sortedReplacements = Object.entries(setReplacements).sort((a, b) => b[0].length - a[0].length);
+        // Get all active replacements for Set Theory
+        const allSetReplacements = getAllSetReplacements();
+        const sortedReplacements = Object.entries(allSetReplacements).sort((a, b) => b[0].length - a[0].length);
         
         for (const [key, symbol] of sortedReplacements) {
             if (beforeSpace.endsWith(key)) {

@@ -249,6 +249,18 @@
                     <span class="shortcut-to">¬</span>
                 </div>
             </div>
+            <div style="margin-top: 15px; padding-top: 10px; border-top: 1px solid #999;">
+                <div style="font-size: 12px; margin-bottom: 8px;">Optional shortcuts (click to toggle):</div>
+                <div id="setOptionalShortcuts" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px;">
+                    <!-- Optional shortcuts for set theory -->
+                </div>
+                <div style="margin-top: 10px;">
+                    <input type="text" id="setCustomFrom" placeholder="type..." style="width: 60px; padding: 2px; font-size: 12px;">
+                    <span> → </span>
+                    <input type="text" id="setCustomTo" placeholder="symbol" style="width: 40px; padding: 2px; font-size: 12px;">
+                    <button onclick="addSetCustomShortcut()" style="padding: 2px 6px; font-size: 12px;">Add</button>
+                </div>
+            </div>
             <div class="hint">Tips: |pipes| for inline math • Tab/spaces at line start for centered equations</div>
         </div>
     </div>
