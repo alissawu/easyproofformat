@@ -576,7 +576,7 @@ function showCopyStatus() {
     }, 2000);
 }
 
-// Set theory replacements
+// Set theory replacements (includes all Boolean shortcuts)
 const setReplacements = {
     // Slash-triggered replacements (for words that might be used in regular text)
     '/in': '∈',
@@ -590,16 +590,24 @@ const setReplacements = {
     '/thereexists': '∃',
     '/exists': '∃',  // alternate for exists
     
-    // Direct replacements (less likely to conflict)
+    // Boolean/logic replacements (from Boolean tab)
+    '<->': '↔',
+    '<=>': '↔',  // Same as <->
+    '->': '→',
+    '=>': '→',    // Same as ->
+    '<-': '←',
+    '<=': '←',    // Same as <-
+    '!=': '≠',
+    
+    // Direct replacements
     '\\': '∖',  // set difference
     'delta': 'Δ',
-    '!=': '≠',
-    '->': '→',
-    '<->': '↔',
     
     // Single character replacements (require space before)
-    'u': '∪',
-    'n': '∩'
+    'u': '∪',  // union (same as v in Boolean)
+    'n': '∩',  // intersection (same as ^ in Boolean)
+    'v': '∨',  // logical OR
+    '^': '∧'   // logical AND
 };
 
 // Convert text to Unicode superscript or subscript
@@ -760,6 +768,15 @@ function handleSetInput(e) {
     let newCursorPos = start;
     
     const justTyped = value[start - 1];
+    
+    // Handle instant replacements (! and ~ for negation)
+    if ((justTyped === '!' || justTyped === '~') && !superscriptMode && !subscriptMode) {
+        value = value.substring(0, start - 1) + '¬' + value.substring(start);
+        input.value = value;
+        input.setSelectionRange(start, start);
+        updateSetPreview();
+        return;
+    }
     
     // Handle superscript/subscript modes
     if (superscriptMode || subscriptMode) {
