@@ -682,7 +682,10 @@ const setReplacements = {
     '/forall': '∀',
     '/thereexists': '∃',
     '/exists': '∃',  // alternate for exists
-    
+    '/and': '∧',  // logical AND
+    '/or': '∨',   // logical OR
+    '/compose': '∘',  // composition
+
     // Boolean/logic replacements (from Boolean tab)
     '<->': '↔',
     '<=>': '↔',  // Same as <->
@@ -691,11 +694,11 @@ const setReplacements = {
     '<-': '←',
     '<=': '←',    // Same as <-
     '!=': '≠',
-    
+
     // Direct replacements
     '\\': '∖',  // set difference
     'delta': 'Δ',
-    
+
     // Single character replacements (require space before)
     'u': '∪',  // union (same as v in Boolean)
     'n': '∩',  // intersection (same as ^ in Boolean)
@@ -1114,7 +1117,8 @@ function convertSetToLatex(text, isEquation) {
         '∃': '\\exists',
         '¬': '\\neg',
         '∧': '\\land',
-        '∨': '\\lor'
+        '∨': '\\lor',
+        '∘': '\\circ'
     };
     
     if (isEquation) {
