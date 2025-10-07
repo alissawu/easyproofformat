@@ -20,7 +20,7 @@
     
     <div class="text-section">
         <div class="section-label">Given / Problem:</div>
-        <textarea class="text-area" id="preText" placeholder="Problem statement..."></textarea>
+        <textarea class="text-area" id="preText" placeholder="Claim: ..."></textarea>
     </div>
 
     <div class="proof-container">
@@ -28,7 +28,7 @@
         <div id="proofLines">
             <div class="proof-line" data-line-id="1">
                 <div class="line-number">1.</div>
-                <input type="text" class="proof-input" placeholder="expression">
+                <input type="text" class="proof-input" placeholder="Suppose ...">
                 <input type="text" class="reason-input" placeholder="reason">
                 <div class="line-actions">
                     <button class="line-btn" onclick="clearLine(1)">clr</button>
@@ -45,7 +45,7 @@
 
     <div class="text-section">
         <div class="section-label">Therefore / Conclusion:</div>
-        <textarea class="text-area" id="postText" placeholder="Conclusion..."></textarea>
+        <textarea class="text-area" id="postText" placeholder="Therefore...&#10;So [claim]"></textarea>
     </div>
 
     <div class="preview-section">
@@ -64,13 +64,14 @@
         <div class="shortcuts-panel">
         <div class="shortcuts-title">Core shortcuts (always on):</div>
         <div class="shortcut-grid">
-            <div class="shortcut-item">
-                <span class="shortcut-from">n</span>
-                <span class="shortcut-to">∩</span>
-            </div>
+            <!-- Single character shortcuts -->
             <div class="shortcut-item">
                 <span class="shortcut-from">u</span>
                 <span class="shortcut-to">∪</span>
+            </div>
+            <div class="shortcut-item">
+                <span class="shortcut-from">n</span>
+                <span class="shortcut-to">∩</span>
             </div>
             <div class="shortcut-item">
                 <span class="shortcut-from">v</span>
@@ -88,12 +89,40 @@
                 <span class="shortcut-from">~</span>
                 <span class="shortcut-to">¬</span>
             </div>
+
+            <!-- Slash verbal alternatives -->
+            <div class="shortcut-item">
+                <span class="shortcut-from">/union</span>
+                <span class="shortcut-to">∪</span>
+            </div>
+            <div class="shortcut-item">
+                <span class="shortcut-from">/intersect</span>
+                <span class="shortcut-to">∩</span>
+            </div>
+            <div class="shortcut-item">
+                <span class="shortcut-from">/or</span>
+                <span class="shortcut-to">∨</span>
+            </div>
+            <div class="shortcut-item">
+                <span class="shortcut-from">/and</span>
+                <span class="shortcut-to">∧</span>
+            </div>
+
+            <!-- Arrows and implications -->
             <div class="shortcut-item">
                 <span class="shortcut-from">-></span>
                 <span class="shortcut-to">→</span>
             </div>
             <div class="shortcut-item">
+                <span class="shortcut-from">=></span>
+                <span class="shortcut-to">→</span>
+            </div>
+            <div class="shortcut-item">
                 <span class="shortcut-from"><-</span>
+                <span class="shortcut-to">←</span>
+            </div>
+            <div class="shortcut-item">
+                <span class="shortcut-from"><=</span>
                 <span class="shortcut-to">←</span>
             </div>
             <div class="shortcut-item">
@@ -104,17 +133,75 @@
                 <span class="shortcut-from"><=></span>
                 <span class="shortcut-to">↔</span>
             </div>
-            <div class="shortcut-item">
-                <span class="shortcut-from">=></span>
-                <span class="shortcut-to">→</span>
-            </div>
-            <div class="shortcut-item">
-                <span class="shortcut-from"><=</span>
-                <span class="shortcut-to">←</span>
-            </div>
+
+            <!-- Other operators -->
             <div class="shortcut-item">
                 <span class="shortcut-from">!=</span>
                 <span class="shortcut-to">≠</span>
+            </div>
+            <div class="shortcut-item">
+                <span class="shortcut-from">/equiv</span>
+                <span class="shortcut-to">≡</span>
+            </div>
+            <div class="shortcut-item">
+                <span class="shortcut-from">/xor</span>
+                <span class="shortcut-to">⊕</span>
+            </div>
+
+            <!-- Quantifiers and logic -->
+            <div class="shortcut-item">
+                <span class="shortcut-from">/forall</span>
+                <span class="shortcut-to">∀</span>
+            </div>
+            <div class="shortcut-item">
+                <span class="shortcut-from">/thereexists</span>
+                <span class="shortcut-to">∃</span>
+            </div>
+            <div class="shortcut-item">
+                <span class="shortcut-from">/exists</span>
+                <span class="shortcut-to">∃</span>
+            </div>
+            <div class="shortcut-item">
+                <span class="shortcut-from">/therefore</span>
+                <span class="shortcut-to">∴</span>
+            </div>
+
+            <!-- Set membership and relations -->
+            <div class="shortcut-item">
+                <span class="shortcut-from">/in</span>
+                <span class="shortcut-to">∈</span>
+            </div>
+            <div class="shortcut-item">
+                <span class="shortcut-from">/notin</span>
+                <span class="shortcut-to">∉</span>
+            </div>
+            <div class="shortcut-item">
+                <span class="shortcut-from">/subset</span>
+                <span class="shortcut-to">⊆</span>
+            </div>
+            <div class="shortcut-item">
+                <span class="shortcut-from">/psubset</span>
+                <span class="shortcut-to">⊂</span>
+            </div>
+            <div class="shortcut-item">
+                <span class="shortcut-from">/superset</span>
+                <span class="shortcut-to">⊇</span>
+            </div>
+            <div class="shortcut-item">
+                <span class="shortcut-from">/psuperset</span>
+                <span class="shortcut-to">⊃</span>
+            </div>
+            <div class="shortcut-item">
+                <span class="shortcut-from">/empty</span>
+                <span class="shortcut-to">∅</span>
+            </div>
+            <div class="shortcut-item">
+                <span class="shortcut-from">/symdiff</span>
+                <span class="shortcut-to">Δ</span>
+            </div>
+            <div class="shortcut-item">
+                <span class="shortcut-from">/compose</span>
+                <span class="shortcut-to">∘</span>
             </div>
         </div>
         <div style="margin-top: 15px; padding-top: 10px; border-top: 1px solid #999;">
@@ -133,24 +220,25 @@
     </div>
     
     <div id="sets-tab" class="tab-content">
-        <div class="subtitle">Tab → indent • Wrap sets in || • Cmd+. → superscript mode • Cmd+, → subscript mode • u→∪ n→∩ \→∖ with space</div>
+        <div class="subtitle">Tab → indent • Wrap sets in || • Cmd+. → superscript mode • Cmd+, → subscript mode • u→∪ n→∩ with space</div>
         
         <div class="text-section">
             <div class="section-label">Given / Problem:</div>
-            <textarea class="text-area set-input" id="setPreText" placeholder="Problem statement..."></textarea>
+            <textarea class="text-area set-input" id="setPreText" placeholder="Claim: ..."></textarea>
         </div>
 
         <div class="proof-container">
             <div class="section-label">Proof:</div>
-            <textarea class="set-proof-area set-input" id="setProofText" placeholder="Type your proof here:
+            <textarea class="set-proof-area set-input" id="setProofText" placeholder="Suppose ...
+.
+.
 • Wrap inline set notation in |pipes| like |A ∩ B|
-• Tab/indent lines for standalone centered equations
-• Use shortcuts: u→∪, n→∩, \→∖ (with space after)"></textarea>
+• Tab/indent lines for standalone centered equations"></textarea>
         </div>
 
         <div class="text-section">
             <div class="section-label">Therefore / Conclusion:</div>
-            <textarea class="text-area set-input" id="setPostText" placeholder="Conclusion..."></textarea>
+            <textarea class="text-area set-input" id="setPostText" placeholder="Therefore...&#10;So [claim]"></textarea>
         </div>
 
         <div class="preview-section">
@@ -167,8 +255,9 @@
         <div class="latex-output" id="setLatexOutput" style="display: none;"></div>
 
         <div class="shortcuts-panel">
-            <div class="shortcuts-title">Set Theory Shortcuts (type then space):</div>
+            <div class="shortcuts-title">Core shortcuts (always on):</div>
             <div class="shortcut-grid">
+                <!-- Single character shortcuts -->
                 <div class="shortcut-item">
                     <span class="shortcut-from">u</span>
                     <span class="shortcut-to">∪</span>
@@ -178,9 +267,99 @@
                     <span class="shortcut-to">∩</span>
                 </div>
                 <div class="shortcut-item">
-                    <span class="shortcut-from">\</span>
-                    <span class="shortcut-to">∖</span>
+                    <span class="shortcut-from">v</span>
+                    <span class="shortcut-to">∨</span>
                 </div>
+                <div class="shortcut-item">
+                    <span class="shortcut-from">^</span>
+                    <span class="shortcut-to">∧</span>
+                </div>
+                <div class="shortcut-item">
+                    <span class="shortcut-from">!</span>
+                    <span class="shortcut-to">¬</span>
+                </div>
+                <div class="shortcut-item">
+                    <span class="shortcut-from">~</span>
+                    <span class="shortcut-to">¬</span>
+                </div>
+
+                <!-- Slash verbal alternatives -->
+                <div class="shortcut-item">
+                    <span class="shortcut-from">/union</span>
+                    <span class="shortcut-to">∪</span>
+                </div>
+                <div class="shortcut-item">
+                    <span class="shortcut-from">/intersect</span>
+                    <span class="shortcut-to">∩</span>
+                </div>
+                <div class="shortcut-item">
+                    <span class="shortcut-from">/or</span>
+                    <span class="shortcut-to">∨</span>
+                </div>
+                <div class="shortcut-item">
+                    <span class="shortcut-from">/and</span>
+                    <span class="shortcut-to">∧</span>
+                </div>
+
+                <!-- Arrows and implications -->
+                <div class="shortcut-item">
+                    <span class="shortcut-from">-></span>
+                    <span class="shortcut-to">→</span>
+                </div>
+                <div class="shortcut-item">
+                    <span class="shortcut-from">=></span>
+                    <span class="shortcut-to">→</span>
+                </div>
+                <div class="shortcut-item">
+                    <span class="shortcut-from"><-</span>
+                    <span class="shortcut-to">←</span>
+                </div>
+                <div class="shortcut-item">
+                    <span class="shortcut-from"><=</span>
+                    <span class="shortcut-to">←</span>
+                </div>
+                <div class="shortcut-item">
+                    <span class="shortcut-from"><-></span>
+                    <span class="shortcut-to">↔</span>
+                </div>
+                <div class="shortcut-item">
+                    <span class="shortcut-from"><=></span>
+                    <span class="shortcut-to">↔</span>
+                </div>
+
+                <!-- Other operators -->
+                <div class="shortcut-item">
+                    <span class="shortcut-from">!=</span>
+                    <span class="shortcut-to">≠</span>
+                </div>
+                <div class="shortcut-item">
+                    <span class="shortcut-from">/equiv</span>
+                    <span class="shortcut-to">≡</span>
+                </div>
+                <div class="shortcut-item">
+                    <span class="shortcut-from">/xor</span>
+                    <span class="shortcut-to">⊕</span>
+                </div>
+
+                <!-- Quantifiers and logic -->
+                <div class="shortcut-item">
+                    <span class="shortcut-from">/forall</span>
+                    <span class="shortcut-to">∀</span>
+                </div>
+                <div class="shortcut-item">
+                    <span class="shortcut-from">/thereexists</span>
+                    <span class="shortcut-to">∃</span>
+                </div>
+                <div class="shortcut-item">
+                    <span class="shortcut-from">/exists</span>
+                    <span class="shortcut-to">∃</span>
+                </div>
+                <div class="shortcut-item">
+                    <span class="shortcut-from">/therefore</span>
+                    <span class="shortcut-to">∴</span>
+                </div>
+
+                <!-- Set membership and relations -->
                 <div class="shortcut-item">
                     <span class="shortcut-from">/in</span>
                     <span class="shortcut-to">∈</span>
@@ -210,44 +389,12 @@
                     <span class="shortcut-to">∅</span>
                 </div>
                 <div class="shortcut-item">
-                    <span class="shortcut-from">delta</span>
-                    <span class="shortcut-to">∆</span>
+                    <span class="shortcut-from">/symdiff</span>
+                    <span class="shortcut-to">Δ</span>
                 </div>
                 <div class="shortcut-item">
-                    <span class="shortcut-from">!=</span>
-                    <span class="shortcut-to">≠</span>
-                </div>
-                <div class="shortcut-item">
-                    <span class="shortcut-from">-></span>
-                    <span class="shortcut-to">→</span>
-                </div>
-                <div class="shortcut-item">
-                    <span class="shortcut-from"><-></span>
-                    <span class="shortcut-to">↔</span>
-                </div>
-                <div class="shortcut-item">
-                    <span class="shortcut-from">/forall</span>
-                    <span class="shortcut-to">∀</span>
-                </div>
-                <div class="shortcut-item">
-                    <span class="shortcut-from">/exists</span>
-                    <span class="shortcut-to">∃</span>
-                </div>
-                <div class="shortcut-item">
-                    <span class="shortcut-from">v</span>
-                    <span class="shortcut-to">∨</span>
-                </div>
-                <div class="shortcut-item">
-                    <span class="shortcut-from">^</span>
-                    <span class="shortcut-to">∧</span>
-                </div>
-                <div class="shortcut-item">
-                    <span class="shortcut-from">!</span>
-                    <span class="shortcut-to">¬</span>
-                </div>
-                <div class="shortcut-item">
-                    <span class="shortcut-from">~</span>
-                    <span class="shortcut-to">¬</span>
+                    <span class="shortcut-from">/compose</span>
+                    <span class="shortcut-to">∘</span>
                 </div>
             </div>
             <div style="margin-top: 15px; padding-top: 10px; border-top: 1px solid #999;">
@@ -271,6 +418,6 @@
 <br>
 <br>
 <small>Please send feature requests to aw5571@nyu.edu. Or you can make a pull request.</small>
-<small>This site is not intended to be a substitute for learning Latex, if you're supposed to. I can't prevent it but use your best judgement.</small>
+<small>This site is not intended to be a substitute for learning Latex, if you're supposed to. Use your best judgement.</small>
 <small>This site is not intended to be a substitute for writing. Writing is proven to be better for memory.</small>
 </html>

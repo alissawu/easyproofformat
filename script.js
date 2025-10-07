@@ -1,15 +1,44 @@
-// Core replacements (always active)
-const replacements = {
+// Unified replacements for both Boolean and Set Theory tabs (used for both tabs)
+const sharedReplacements = {
     // Multi-character replacements (must come first)
     '<->': '↔',
-    '<=>': '↔',  // Same as <->
+    '<=>': '↔',
     '->': '→',
-    '=>': '→',    // Same as ->
+    '=>': '→',
     '<-': '←',
-    '<=': '←',    // Same as <-
+    '<=': '←',
     '!=': '≠',
-    
-    // Single character replacements
+
+    // Slash-triggered replacements
+    '/union': '∪',
+    '/intersect': '∩',
+    '/or': '∨',
+    '/and': '∧',
+    '/forall': '∀',
+    '/thereexists': '∃',
+    '/exists': '∃',
+    '/in': '∈',
+    '/notin': '∉',
+    '/subset': '⊆',
+    '/psubset': '⊂',
+    '/superset': '⊇',
+    '/psuperset': '⊃',
+    '/empty': '∅',
+    '/equiv': '≡',
+    '/xor': '⊕',
+    '/therefore': '∴',
+    '/symdiff': 'Δ',
+    '/compose': '∘',
+
+    // Optional single-char with slash (can be toggled to work without slash)
+    '/n': '∩',
+    '/u': '∪',
+    '/v': '∨',
+    '/^': '∧'
+};
+
+// Single character replacements that can be toggled to require slash or not
+const toggleableShortcuts = {
     'n': '∩',
     'u': '∪',
     'v': '∨',
@@ -48,15 +77,11 @@ const latexMap = {
 let lineCount = 1;
 let allLines = [1];
 
+// Track whether slashes are required for single-char shortcuts (default: false, no slash needed)
+let requireSlashForShortcuts = false;
+
 // Optional shortcuts that can be toggled
 const optionalShortcuts = {
-    'forall': '∀',
-    'thereexists': '∃',
-    'in': '∈',
-    'empty': '∅',
-    'equiv': '≡',
-    'xor': '⊕',
-    'therefore': '∴',
     'T': '⊤',
     'F': '⊥'
 };
@@ -80,7 +105,7 @@ function loadSavedShortcuts() {
         if (savedActive) {
             activeOptional = new Set(JSON.parse(savedActive));
         }
-        
+
         // Load set theory shortcuts
         const savedSet = localStorage.getItem('customSetShortcuts');
         if (savedSet) {
@@ -89,6 +114,12 @@ function loadSavedShortcuts() {
         const savedSetActive = localStorage.getItem('activeSetOptional');
         if (savedSetActive) {
             activeSetOptional = new Set(JSON.parse(savedSetActive));
+        }
+
+        // Load slash requirement preference
+        const savedSlashPref = localStorage.getItem('requireSlashForShortcuts');
+        if (savedSlashPref !== null) {
+            requireSlashForShortcuts = JSON.parse(savedSlashPref);
         }
     } catch(e) {
         console.log('Could not load saved shortcuts');
@@ -101,7 +132,17 @@ function renderOptionalShortcuts() {
     const container = document.getElementById('optionalShortcuts');
     if (!container) return;
     container.innerHTML = '';
-    
+
+    // Add slash toggle button first
+    const slashToggle = document.createElement('button');
+    slashToggle.style.cssText = 'padding: 4px 8px; font-size: 11px; margin-bottom: 8px; cursor: pointer; width: 100%; grid-column: 1 / -1;';
+    slashToggle.style.background = requireSlashForShortcuts ? '#ddd' : '#fff';
+    slashToggle.style.border = '1px solid #666';
+    slashToggle.style.fontWeight = requireSlashForShortcuts ? 'bold' : 'normal';
+    slashToggle.textContent = requireSlashForShortcuts ? '✓ Require slash for n,u,v,^ (use /n /u /v /^)' : 'No slash needed for n,u,v,^ (click to require slash)';
+    slashToggle.onclick = toggleSlashRequirement;
+    container.appendChild(slashToggle);
+
     // Add optional shortcuts
     Object.entries(optionalShortcuts).forEach(([from, to]) => {
         const btn = document.createElement('button');
@@ -114,7 +155,7 @@ function renderOptionalShortcuts() {
         btn.onclick = () => toggleOptional(from);
         container.appendChild(btn);
     });
-    
+
     // Add custom shortcuts
     Object.entries(customShortcuts).forEach(([from, to]) => {
         const btn = document.createElement('button');
@@ -166,22 +207,46 @@ function removeCustomShortcut(key) {
     renderOptionalShortcuts();
 }
 
-// Get all active replacements
+// Get all active replacements (for both Boolean and Set Theory tabs - now unified)
 function getAllReplacements() {
-    let all = {...replacements};
+    let all = {...sharedReplacements};
+
+    // Add toggleable shortcuts based on slash requirement setting
+    if (!requireSlashForShortcuts) {
+        Object.assign(all, toggleableShortcuts);
+    }
+
+    // Add optional shortcuts
     activeOptional.forEach(key => {
         all[key] = optionalShortcuts[key];
     });
+
     return {...all, ...customShortcuts};
 }
 
-// Get all active replacements for Set Theory
+// Get all active replacements for Set Theory (now uses same unified system)
 function getAllSetReplacements() {
-    let all = {...setReplacements};
+    let all = {...sharedReplacements};
+
+    // Add toggleable shortcuts based on slash requirement setting
+    if (!requireSlashForShortcuts) {
+        Object.assign(all, toggleableShortcuts);
+    }
+
+    // Add optional shortcuts
     activeSetOptional.forEach(key => {
         all[key] = optionalShortcuts[key];
     });
+
     return {...all, ...customSetShortcuts};
+}
+
+// Toggle slash requirement for single-char shortcuts
+function toggleSlashRequirement() {
+    requireSlashForShortcuts = !requireSlashForShortcuts;
+    localStorage.setItem('requireSlashForShortcuts', JSON.stringify(requireSlashForShortcuts));
+    renderOptionalShortcuts();
+    renderSetOptionalShortcuts();
 }
 
 // Render optional shortcuts for Set Theory tab
@@ -189,7 +254,17 @@ function renderSetOptionalShortcuts() {
     const container = document.getElementById('setOptionalShortcuts');
     if (!container) return;
     container.innerHTML = '';
-    
+
+    // Add slash toggle button first
+    const slashToggle = document.createElement('button');
+    slashToggle.style.cssText = 'padding: 4px 8px; font-size: 11px; margin-bottom: 8px; cursor: pointer; width: 100%; grid-column: 1 / -1;';
+    slashToggle.style.background = requireSlashForShortcuts ? '#ddd' : '#fff';
+    slashToggle.style.border = '1px solid #666';
+    slashToggle.style.fontWeight = requireSlashForShortcuts ? 'bold' : 'normal';
+    slashToggle.textContent = requireSlashForShortcuts ? '✓ Require slash for n,u,v,^ (use /n /u /v /^)' : 'No slash needed for n,u,v,^ (click to require slash)';
+    slashToggle.onclick = toggleSlashRequirement;
+    container.appendChild(slashToggle);
+
     // Add optional shortcuts
     Object.entries(optionalShortcuts).forEach(([from, to]) => {
         const btn = document.createElement('button');
@@ -210,7 +285,7 @@ function renderSetOptionalShortcuts() {
         };
         container.appendChild(btn);
     });
-    
+
     // Add custom shortcuts
     Object.entries(customSetShortcuts).forEach(([from, to]) => {
         const btn = document.createElement('button');
@@ -669,42 +744,6 @@ function showCopyStatus() {
     }, 2000);
 }
 
-// Set theory replacements (includes all Boolean shortcuts)
-const setReplacements = {
-    // Slash-triggered replacements (for words that might be used in regular text)
-    '/in': '∈',
-    '/notin': '∉',
-    '/subset': '⊆',
-    '/psubset': '⊂',  // proper subset
-    '/superset': '⊇',
-    '/psuperset': '⊃',  // proper superset
-    '/empty': '∅',
-    '/forall': '∀',
-    '/thereexists': '∃',
-    '/exists': '∃',  // alternate for exists
-    '/and': '∧',  // logical AND
-    '/or': '∨',   // logical OR
-    '/compose': '∘',  // composition
-
-    // Boolean/logic replacements (from Boolean tab)
-    '<->': '↔',
-    '<=>': '↔',  // Same as <->
-    '->': '→',
-    '=>': '→',    // Same as ->
-    '<-': '←',
-    '<=': '←',    // Same as <-
-    '!=': '≠',
-
-    // Direct replacements
-    '\\': '∖',  // set difference
-    'delta': 'Δ',
-
-    // Single character replacements (require space before)
-    'u': '∪',  // union (same as v in Boolean)
-    'n': '∩',  // intersection (same as ^ in Boolean)
-    'v': '∨',  // logical OR
-    '^': '∧'   // logical AND
-};
 
 // Convert text to Unicode superscript or subscript
 function convertToSuperSubScript(text, isSuperscript) {
