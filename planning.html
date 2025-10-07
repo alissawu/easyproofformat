@@ -1,6 +1,6 @@
 This page is not meant to be found! Congrats for finding it.
 
-
+This is what we currently have:
 Always:
     '<->': '↔',
     '<=>': '↔',  
@@ -9,15 +9,106 @@ Always:
     '<-': '←',
     '<=': '←',   
     '!=': '≠',
-    
-
     'n': '∩',
     'u': '∪',
+^ have a setting where you can enable or disable needing a slash for this
     'v': '∨',
     '^': '∧'
     /union : '∪'
     /intersect : '∩'
     /or : '∨',
     /and : '∧'
+Instead of making these optional, I think we could just do slash method.
+    '/forall': '∀',
+    '/thereexists': '∃',
+    '/in': '∈',
+    '/empty': '∅',
+    '/equiv': '≡',
+    '/xor': '⊕',
+    '/therefore': '∴',
 
+Sets:
+    // Slash-triggered replacements (for words that might be used in regular text)
+    '/in': '∈',
+    '/notin': '∉',
+    '/subset': '⊆',
+    '/psubset': '⊂',  // proper subset
+    '/superset': '⊇',
+    '/psuperset': '⊃',  // proper superset
+    '/empty': '∅',
+    '/forall': '∀',
+    '/thereexists': '∃',
+    '/exists': '∃',  // alternate for exists
+    '/and': '∧',  // logical AND
+    '/or': '∨',   // logical OR
+    '/compose': '∘',  // composition
+
+    // Boolean/logic replacements (from Boolean tab)
+    '<->': '↔',
+    '<=>': '↔',  // Same as <->
+    '->': '→',
+    '=>': '→',    // Same as ->
+    '<-': '←',
+    '<=': '←',    // Same as <-
+    '!=': '≠',
+
+    // Direct replacements
+    '/symdiff': 'Δ',
+
+    // Single character replacements (require space before)
+    'u': '∪',  // union (same as v in Boolean)
+    'n': '∩',  // intersection (same as ^ in Boolean)
+    'v': '∨',  // logical OR
+    '^': '∧'   // logical AND
+
+Instead of making these 2 different sets of switching, I think boolean and set theory have a lot more in common, 
+The thing is, I think for boolean algebra, you usually use ∨ / ∧
+And for sets, you use ∪ and ∩. Sometimes you use both
+And ^ is really annoying to type
+/intersect is not annoying to type though. If we make everything possible via "slash-verbal", this also promotes memory as you can say it out loud to reinforce what it means.
+So we can safely consolidate this.
+
+CLAUDE START HERE: 
+Let's do THIS for both tabs.
+
+    '<->': '↔',
+    '<=>': '↔',  
+    '->': '→',
+    '=>': '→',    
+    '<-': '←',
+    '<=': '←',   
+    '!=': '≠',
+    /union : '∪'
+    /intersect : '∩'
+    '/n': '∩',
+    '/u': '∪',
+    /or : '∨',
+    /and : '∧',
+    /v : ∨
+    /^ : ∧
+    '/forall': '∀',
+    '/thereexists': '∃',
+    '/in': '∈',
+    '/empty': '∅',
+    '/equiv': '≡',
+    '/xor': '⊕',
+    '/therefore': '∴',
+    // SETS STUFF
+    '/in': '∈',
+    '/notin': '∉',
+    '/subset': '⊆',
+    '/psubset': '⊂',  // proper subset
+    '/superset': '⊇',
+    '/psuperset': '⊃',  // proper superset
+    '/empty': '∅',
+    '/symdiff': 'Δ',
+
+    Also
+    For the default text in Proof: I want it like this:
+    Claim: ...
+    Suppose ...
+    .
+    .
+    Therefore...
+    So [claim]
     
