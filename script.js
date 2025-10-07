@@ -726,7 +726,7 @@ function convertToSuperSubScript(text, isSuperscript) {
         'L': 'ᴸ', 'M': 'ᴹ', 'N': 'ᴺ', 'O': 'ᴼ', 'P': 'ᴾ',
         'R': 'ᴿ', 'T': 'ᵀ', 'U': 'ᵁ', 'V': 'ⱽ', 'W': 'ᵂ',
         '+': '⁺', '-': '⁻', '=': '⁼', '(': '⁽', ')': '⁾',
-        '.': '·'  // Middle dot for ellipsis
+        '.': '·'  
     };
     
     const subscriptMap = {
